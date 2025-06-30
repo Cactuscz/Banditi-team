@@ -10,9 +10,21 @@
     font-family: 'Segoe UI', sans-serif;
     padding: 30px;
   }
-  h1 {
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+    margin-bottom: 30px;
+  }
+  .header img {
+    height: 60px;
+    user-select: none;
+  }
+  .header h1 {
     color: #00ffc8;
-    text-align: center;
+    margin: 0;
+    font-size: 2.2em;
   }
   table {
     width: 100%;
@@ -100,7 +112,10 @@
 </head>
 <body>
 
-<h1>Banditi Team Stats</h1>
+<div class="header">
+  <img src="logo.png" alt="Banditi Logo" />
+  <h1>Banditi Team Stats</h1>
+</div>
 
 <table id="teamTable">
   <thead>
@@ -149,7 +164,6 @@
   firebase.initializeApp(firebaseConfig);
   const db = firebase.firestore();
 
-  // Limity dílny vzestupně podle levelu
   const limits = [
     {level: 100, workshop: 7},
     {level: 150, workshop: 8},
@@ -240,6 +254,17 @@
     return tr;
   }
 
+  window.addEventListener('DOMContentLoaded', () => {
+    const limitsList = document.getElementById('limitsList');
+    limits.forEach(l => {
+      const li = document.createElement('li');
+      li.textContent = `Lvl ${l.level}+ → Dílna ${l.workshop}`;
+      limitsList.appendChild(li);
+    });
+
+    loadData();
+  });
+
   function loadData() {
     tbody.innerHTML = '';
     db.collection('players').orderBy('level', 'desc').onSnapshot(snapshot => {
@@ -278,16 +303,6 @@
       e.target.reset();
     }).catch(console.error);
   });
-
-  // Vykreslení limitů dílny pod tabulkou
-  const limitsList = document.getElementById('limitsList');
-  limits.forEach(l => {
-    const li = document.createElement('li');
-    li.textContent = `Lvl ${l.level}+ → Dílna ${l.workshop}`;
-    limitsList.appendChild(li);
-  });
-
-  loadData();
 </script>
 
 </body>
