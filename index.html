@@ -21,6 +21,7 @@
     border-radius: 10px;
     overflow: hidden;
     box-shadow: 0 0 15px rgba(0,0,0,0.5);
+    margin-bottom: 30px;
   }
   th, td {
     padding: 12px 18px;
@@ -70,6 +71,31 @@
   .status-over { color: lime; }
   .status-under { color: red; }
   .status-na { color: gray; }
+  .limits {
+    margin-top: 20px;
+    max-width: 700px;
+    margin-left: auto;
+    margin-right: auto;
+    background-color: #2a2a3d;
+    padding: 15px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0,255,200,0.3);
+  }
+  .limits h2 {
+    color: #00ffc8;
+    margin-top: 0;
+    margin-bottom: 10px;
+    text-align: center;
+  }
+  .limits ul {
+    list-style: none;
+    padding-left: 0;
+    text-align: center;
+    font-size: 16px;
+  }
+  .limits ul li {
+    padding: 3px 0;
+  }
 </style>
 </head>
 <body>
@@ -102,11 +128,15 @@
   <button type="submit">Přidat hráče</button>
 </form>
 
+<div class="limits">
+  <h2>Limity dílny podle levelu:</h2>
+  <ul id="limitsList"></ul>
+</div>
+
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
 <script>
-  // TODO: Nahraď svou konfigurací Firebase z konzole
   const firebaseConfig = {
     apiKey: "AIzaSyDlWV1eFKgh-B8_D_7bDQqf1PwgJEgMRaY",
     authDomain: "banditi.firebaseapp.com",
@@ -116,38 +146,41 @@
     appId: "1:319931947074:web:1c2687024644b731caf5db"
   };
 
-  // Inicializace Firebase
   firebase.initializeApp(firebaseConfig);
   const db = firebase.firestore();
 
-  // Limity dílny
+  // Limity dílny vzestupně podle levelu
   const limits = [
-    {level: 500, workshop: 20},
-    {level: 450, workshop: 19},
-    {level: 400, workshop: 18},
-    {level: 350, workshop: 17},
-    {level: 325, workshop: 16},
-    {level: 300, workshop: 15},
-    {level: 275, workshop: 14},
-    {level: 250, workshop: 13},
-    {level: 230, workshop: 12},
-    {level: 210, workshop: 11},
-    {level: 190, workshop: 10},
-    {level: 170, workshop: 9},
+    {level: 100, workshop: 7},
     {level: 150, workshop: 8},
-    {level: 100, workshop: 7}
+    {level: 170, workshop: 9},
+    {level: 190, workshop: 10},
+    {level: 210, workshop: 11},
+    {level: 230, workshop: 12},
+    {level: 250, workshop: 13},
+    {level: 275, workshop: 14},
+    {level: 300, workshop: 15},
+    {level: 325, workshop: 16},
+    {level: 350, workshop: 17},
+    {level: 400, workshop: 18},
+    {level: 450, workshop: 19},
+    {level: 500, workshop: 20}
   ];
 
   function getMaxWorkshop(level) {
+    let maxWorkshop = 0;
     for (const limit of limits) {
-      if (level >= limit.level) return limit.workshop;
+      if (level >= limit.level) {
+        maxWorkshop = limit.workshop;
+      } else {
+        break;
+      }
     }
-    return 0;
+    return maxWorkshop;
   }
 
   const tbody = document.querySelector('#teamTable tbody');
 
-  // Vytvoří řádek tabulky z dat
   function createRow(id, data) {
     const tr = document.createElement('tr');
 
@@ -162,7 +195,6 @@
       <td><button class="deleteBtn">Smazat</button></td>
     `;
 
-    // Aktualizuj stav dílny
     function updateStatus() {
       const level = parseInt(tr.querySelector('[data-field="level"]').innerText);
       const workshop = parseInt(tr.querySelector('[data-field="workshop"]').innerText);
@@ -181,29 +213,24 @@
     }
     updateStatus();
 
-    // Uložení dat do Firestore po změně buňky
     tr.querySelectorAll('[contenteditable="true"]').forEach(cell => {
       cell.addEventListener('input', () => {
         const field = cell.dataset.field;
         let value = cell.innerText.trim();
 
-        // Čísla převedeme na number nebo null
         if (['level', 'workshop', 'missedFights'].includes(field)) {
           value = value === '' ? null : Number(value);
           if (isNaN(value)) value = null;
         }
 
-        // Aktualizuj status, když se mění level nebo workshop
         if (field === 'level' || field === 'workshop') updateStatus();
 
-        // Ulož data do Firestore
         const updateData = {};
         updateData[field] = value;
         db.collection('players').doc(id).update(updateData).catch(console.error);
       });
     });
 
-    // Tlačítko smazání
     tr.querySelector('.deleteBtn').addEventListener('click', () => {
       if(confirm(`Smazat hráče ${data.nickname}?`)) {
         db.collection('players').doc(id).delete();
@@ -213,7 +240,6 @@
     return tr;
   }
 
-  // Načti data z Firestore a vykresli je
   function loadData() {
     tbody.innerHTML = '';
     db.collection('players').orderBy('level', 'desc').onSnapshot(snapshot => {
@@ -227,7 +253,6 @@
     });
   }
 
-  // Přidání nového hráče z formuláře
   document.getElementById('addForm').addEventListener('submit', e => {
     e.preventDefault();
     const nickname = document.getElementById('nickname').value.trim();
@@ -252,6 +277,14 @@
     }).then(() => {
       e.target.reset();
     }).catch(console.error);
+  });
+
+  // Vykreslení limitů dílny pod tabulkou
+  const limitsList = document.getElementById('limitsList');
+  limits.forEach(l => {
+    const li = document.createElement('li');
+    li.textContent = `Lvl ${l.level}+ → Dílna ${l.workshop}`;
+    limitsList.appendChild(li);
   });
 
   loadData();
