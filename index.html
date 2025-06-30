@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8" />
+<title>Banditi Team Stats - Firebase</title>
+<style>
+  body {
+    background-color: #1f1f2e;
+    color: #f0f0f0;
+    font-family: 'Segoe UI', sans-serif;
+    padding: 30px;
+  }
+  h1 {
+    color: #00ffc8;
+    text-align: center;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: #2a2a3d;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 0 15px rgba(0,0,0,0.5);
+  }
+  th, td {
+    padding: 12px 18px;
+    text-align: center;
+    border-bottom: 1px solid #3c3c50;
+  }
+  th {
+    background-color: #34344a;
+    color: #00ffc8;
+    font-weight: bold;
+  }
+  tr:nth-child(even) {
+    background-color: #262636;
+  }
+  tr:hover {
+    background-color: #3a3a56;
+  }
+  td[contenteditable="true"] {
+    cursor: text;
+    background-color: #3a3a56;
+  }
+  form {
+    margin-top: 20px;
+    max-width: 700px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+  }
+  input {
+    padding: 5px 10px;
+    border-radius: 5px;
+    border: none;
+    width: 140px;
+    background-color: #1f1f2e;
+    color: #f0f0f0;
+  }
+  button {
+    padding: 8px 20px;
+    background-color: #00ffc8;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+  }
+  .status-ok { color: white; }
+  .status-over { color: lime; }
+  .status-under { color: red; }
+  .status-na { color: gray; }
+</style>
+</head>
+<body>
+
+<h1>Banditi Team Stats</h1>
+
+<table id="teamTable">
+  <thead>
+    <tr>
+      <th>Nickname</th>
+      <th>Level</th>
+      <th>Workshop Level</th>
+      <th>XP Rank</th>
+      <th>HeroCon Rank</th>
+      <th>Workshop Status</th>
+      <th>Vynechané boje</th>
+      <th>Akce</th>
+    </tr>
+  </thead>
+  <tbody></tbody>
+</table>
+
+<form id="addForm">
+  <input type="text" id="nickname" placeholder="Nickname" required />
+  <input type="number" id="level" placeholder="Level" min="0" required />
+  <input type="number" id="workshop" placeholder="Workshop Level" min="0" />
+  <input type="text" id="xpRank" placeholder="XP Rank" />
+  <input type="text" id="heroConRank" placeholder="HeroCon Rank" />
+  <input type="number" id="missedFights" placeholder="Vynechané boje" min="0" />
+  <button type="submit">Přidat hráče</button>
+</form>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+<script>
+  // TODO: Nahraď svou konfigurací Firebase z konzole
+  const firebaseConfig = {
+    apiKey: "AIzaSyDlWV1eFKgh-B8_D_7bDQqf1PwgJEgMRaY",
+    authDomain: "banditi.firebaseapp.com",
+    projectId: "banditi",
+    storageBucket: "banditi.firebasestorage.app",
+    messagingSenderId: "319931947074",
+    appId: "1:319931947074:web:1c2687024644b731caf5db"
+  };
+
+  // Inicializace Firebase
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+
+  // Limity dílny
+  const limits = [
+    {level: 500, workshop: 20},
+    {level: 450, workshop: 19},
+    {level: 400, workshop: 18},
+    {level: 350, workshop: 17},
+    {level: 325, workshop: 16},
+    {level: 300, workshop: 15},
+    {level: 275, workshop: 14},
+    {level: 250, workshop: 13},
+    {level: 230, workshop: 12},
+    {level: 210, workshop: 11},
+    {level: 190, workshop: 10},
+    {level: 170, workshop: 9},
+    {level: 150, workshop: 8},
+    {level: 100, workshop: 7}
+  ];
+
+  function getMaxWorkshop(level) {
+    for (const limit of limits) {
+      if (level >= limit.level) return limit.workshop;
+    }
+    return 0;
+  }
+
+  const tbody = document.querySelector('#teamTable tbody');
+
+  // Vytvoří řádek tabulky z dat
+  function createRow(id, data) {
+    const tr = document.createElement('tr');
+
+    tr.innerHTML = `
+      <td contenteditable="true" data-field="nickname">${data.nickname || ''}</td>
+      <td contenteditable="true" data-field="level">${data.level || ''}</td>
+      <td contenteditable="true" data-field="workshop">${data.workshop || ''}</td>
+      <td contenteditable="true" data-field="xpRank">${data.xpRank || ''}</td>
+      <td contenteditable="true" data-field="heroConRank">${data.heroConRank || ''}</td>
+      <td class="statusCell"></td>
+      <td contenteditable="true" data-field="missedFights">${data.missedFights || 0}</td>
+      <td><button class="deleteBtn">Smazat</button></td>
+    `;
+
+    // Aktualizuj stav dílny
+    function updateStatus() {
+      const level = parseInt(tr.querySelector('[data-field="level"]').innerText);
+      const workshop = parseInt(tr.querySelector('[data-field="workshop"]').innerText);
+      const statusCell = tr.querySelector('.statusCell');
+
+      if (!isNaN(level) && !isNaN(workshop)) {
+        const maxWorkshop = getMaxWorkshop(level);
+        const diff = workshop - maxWorkshop;
+
+        if (diff === 0) statusCell.innerHTML = `<span class="status-ok">OK</span>`;
+        else if (diff > 0) statusCell.innerHTML = `<span class="status-over">+${diff} nad limitem</span>`;
+        else statusCell.innerHTML = `<span class="status-under">${diff} pod limitem</span>`;
+      } else {
+        statusCell.innerHTML = `<span class="status-na">N/A</span>`;
+      }
+    }
+    updateStatus();
+
+    // Uložení dat do Firestore po změně buňky
+    tr.querySelectorAll('[contenteditable="true"]').forEach(cell => {
+      cell.addEventListener('input', () => {
+        const field = cell.dataset.field;
+        let value = cell.innerText.trim();
+
+        // Čísla převedeme na number nebo null
+        if (['level', 'workshop', 'missedFights'].includes(field)) {
+          value = value === '' ? null : Number(value);
+          if (isNaN(value)) value = null;
+        }
+
+        // Aktualizuj status, když se mění level nebo workshop
+        if (field === 'level' || field === 'workshop') updateStatus();
+
+        // Ulož data do Firestore
+        const updateData = {};
+        updateData[field] = value;
+        db.collection('players').doc(id).update(updateData).catch(console.error);
+      });
+    });
+
+    // Tlačítko smazání
+    tr.querySelector('.deleteBtn').addEventListener('click', () => {
+      if(confirm(`Smazat hráče ${data.nickname}?`)) {
+        db.collection('players').doc(id).delete();
+      }
+    });
+
+    return tr;
+  }
+
+  // Načti data z Firestore a vykresli je
+  function loadData() {
+    tbody.innerHTML = '';
+    db.collection('players').orderBy('level', 'desc').onSnapshot(snapshot => {
+      tbody.innerHTML = '';
+      snapshot.forEach(doc => {
+        const row = createRow(doc.id, doc.data());
+        tbody.appendChild(row);
+      });
+    }, error => {
+      console.error("Chyba načtení dat:", error);
+    });
+  }
+
+  // Přidání nového hráče z formuláře
+  document.getElementById('addForm').addEventListener('submit', e => {
+    e.preventDefault();
+    const nickname = document.getElementById('nickname').value.trim();
+    const level = Number(document.getElementById('level').value);
+    const workshop = Number(document.getElementById('workshop').value) || null;
+    const xpRank = document.getElementById('xpRank').value.trim();
+    const heroConRank = document.getElementById('heroConRank').value.trim();
+    const missedFights = Number(document.getElementById('missedFights').value) || 0;
+
+    if (!nickname || isNaN(level)) {
+      alert("Vyplň prosím Nickname a platný Level.");
+      return;
+    }
+
+    db.collection('players').add({
+      nickname,
+      level,
+      workshop,
+      xpRank,
+      heroConRank,
+      missedFights
+    }).then(() => {
+      e.target.reset();
+    }).catch(console.error);
+  });
+
+  loadData();
+</script>
+
+</body>
+</html>
