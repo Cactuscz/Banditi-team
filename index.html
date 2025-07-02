@@ -1,145 +1,202 @@
 <!DOCTYPE html>
 <html lang="cs">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Banditi Team Stats</title>
+<meta charset="UTF-8">
+<title>Banditi - Team Stats</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
-body {
+  body {
     background-color: #1f1f2e;
     color: #f0f0f0;
     font-family: 'Segoe UI', sans-serif;
-    margin: 0;
-    padding: 0;
-}
-header {
-    background-color: #2a2a3d;
     padding: 20px;
+  }
+  .header {
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 15px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.5);
-}
-header img {
+    margin-bottom: 20px;
+  }
+  .header img {
     height: 60px;
-}
-header h1 {
+    user-select: none;
+  }
+  .header h1 {
     color: #00ffc8;
     margin: 0;
-    font-size: 2em;
-}
-nav {
-    background-color: #2a2a3d;
+    font-size: 2.2em;
+  }
+  .nav {
     display: flex;
     justify-content: center;
-    gap: 20px;
-    padding: 10px 0;
-}
-nav button {
-    background-color: transparent;
-    border: none;
-    color: #00ffc8;
-    cursor: pointer;
-    font-size: 1em;
-    padding: 8px 15px;
-    border-radius: 8px;
-}
-nav button:hover {
+    gap: 15px;
+    margin-bottom: 25px;
+  }
+  .nav button {
     background-color: #00ffc8;
     color: #1f1f2e;
-}
-.container {
-    padding: 20px;
-}
-.card {
-    background-color: #2a2a3d;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 0 10px rgba(0,255,200,0.3);
-    margin-bottom: 30px;
-}
-table {
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+  }
+  .nav button:hover {
+    background-color: #00d1a8;
+  }
+  .section {
+    display: none;
+  }
+  .section.active {
+    display: block;
+  }
+  table {
     width: 100%;
     border-collapse: collapse;
-    margin-bottom: 10px;
-}
-th, td {
-    padding: 10px;
+    background-color: #2a2a3d;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 0 15px rgba(0,0,0,0.5);
+    margin-bottom: 30px;
+  }
+  th, td {
+    padding: 12px 18px;
     text-align: center;
     border-bottom: 1px solid #3c3c50;
-}
-th {
+  }
+  th {
     background-color: #34344a;
     color: #00ffc8;
-}
-tr:nth-child(even) {
+    font-weight: bold;
+  }
+  tr:nth-child(even) {
     background-color: #262636;
-}
-tr:hover {
+  }
+  tr:hover {
     background-color: #3a3a56;
-}
-td[contenteditable="true"] {
+  }
+  td[contenteditable="true"] {
     cursor: text;
     background-color: #3a3a56;
-}
-button {
-    padding: 6px 12px;
-    background-color: #00ffc8;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    color: #1f1f2e;
-    font-weight: bold;
-}
-button:hover {
-    background-color: #00ddb3;
-}
-.update-time {
-    font-size: 0.9em;
-    color: gray;
+  }
+  .tables-container {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+  .table-wrapper {
+    flex: 1;
+    min-width: 300px;
+  }
+  .chart-wrapper {
+    flex: 1;
+    min-width: 300px;
+  }
+  .update-info {
+    font-size: 0.8em;
+    color: #00ffc8;
     text-align: right;
-}
-.limits {
-    margin-top: 15px;
-    background-color: #1f1f2e;
-    padding: 10px;
+    margin-bottom: 10px;
+  }
+  .limits {
+    background-color: #2a2a3d;
+    padding: 15px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+  }
+  .limits h2 {
+    color: #00ffc8;
+    margin-top: 0;
+  }
+  .limits ul {
+    columns: 2;
+    padding-left: 20px;
+  }
+  .limits li {
+    margin-bottom: 5px;
+  }
+  #guildInfo {
+    width: 100%;
+    min-height: 500px;
+    background-color: #2a2a3d;
+    color: #f0f0f0;
+    border: 1px solid #3c3c50;
+    border-radius: 10px;
+    padding: 15px;
+    font-family: 'Segoe UI', sans-serif;
+    resize: vertical;
+  }
+  .edit-icon {
+    cursor: pointer;
+    color: #00ffc8;
+    margin-left: 10px;
+    font-size: 0.8em;
+  }
+  .add-player {
+    background-color: #00ffc8;
+    color: #1f1f2e;
+    border: none;
+    padding: 8px 16px;
     border-radius: 8px;
-    box-shadow: 0 0 5px rgba(0,255,200,0.2);
-}
-.section {
-    display: none;
-}
-.section.active {
-    display: block;
-}
+    cursor: pointer;
+    font-weight: bold;
+    margin-bottom: 20px;
+  }
+  .add-player:hover {
+    background-color: #00d1a8;
+  }
+  .update-btn {
+    background-color: #00ffc8;
+    color: #1f1f2e;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    margin-bottom: 10px;
+  }
+  .update-btn:hover {
+    background-color: #00d1a8;
+  }
+  .positive {
+    color: #00ff00;
+  }
+  .negative {
+    color: #ff0000;
+  }
+  .workshop-status {
+    font-weight: bold;
+  }
+  canvas {
+    width: 100% !important;
+    height: 400px !important;
+  }
 </style>
 </head>
 <body>
 
-<header>
-    <img src="logo.png" alt="Banditi">
-    <h1>Banditi Team Stats</h1>
-</header>
+<div class="header">
+  <img src="logo.png" alt="Logo">
+  <h1>Banditi - Team Stats</h1>
+</div>
 
-<nav>
-    <button onclick="showSection('guild')">Guild Info</button>
-    <button onclick="showSection('players')">Players Info</button>
-    <button onclick="showSection('xp')">XP Tournament</button>
-    <button onclick="showSection('herocon')">HeroCon Tournament</button>
-</nav>
+<div class="nav">
+  <button onclick="showSection('guild')">🏰 Guild Info</button>
+  <button onclick="showSection('players')">👥 Players Info</button>
+  <button onclick="showSection('xp')">📈 XP Tournament</button>
+  <button onclick="showSection('herocon')">⚔️ HeroCon Tournament</button>
+</div>
 
-<div id="guild" class="container section active">
-    <div class="card">
-    <h2>Guild Info</h2>
-        <div id="guildContent" contenteditable="true" style="white-space: pre-wrap;">
-
-Casino:
+<div id="guild" class="section">
+  <h2>Guild Info <span class="edit-icon" onclick="requestEditAccess()">✏️</span></h2>
+  <textarea id="guildInfo" readonly>
+Casino: 
 
 Casino with high quality rewards
 2025-07-02 00:00:00 - 2025-07-05 23:59:59
 
-“Chic Hero Hideout” Casino
+"Chic Hero Hideout" Casino
 2025-07-08 00:00:00 - 2025-07-13 23:59:59
 
 Casino with high quality rewards
@@ -172,7 +229,7 @@ Supervillain Lair: Dr. Wireless
 Collection Event: The Secret Recipe
 2025-07-01 00:00:00 - 2025-07-07 23:59:59
 
-Lucky Pyramid: Country Livin’
+Lucky Pyramid: Country Livin'
 2025-07-05 00:00:00 - 2025-07-07 23:59:59
 
 Collection Event: The fiiinaaal! Wooohooooo!
@@ -261,224 +318,417 @@ Villains:
 2025-07-31 03:15:00 Nasty Burglar Duo
 2025-07-31 10:45:00 The Quantum Physicist
 2025-07-31 15:30:00 Ice Cold Real Estate Shark
-
-        </div>
-        <div class="update-time" id="guildTime"></div>
-    </div>
-</div>
-<div id="players" class="container section">
-    <div class="card">
-        <h2>Players Info</h2>
-        <table id="playersTable">
-            <thead>
-                <tr>
-                    <th>Nickname</th>
-                    <th>Level</th>
-                    <th>Workshop Level</th>
-                    <th>Workshop Status</th>
-                    <th>Missed Fights</th>
-                    <th>Role</th>
-                    <th>Akce</th>
-                </tr>
-            </thead>
-            <tbody></tbody>
-        </table>
-        <form id="addPlayerForm">
-            <input type="text" id="nickname" placeholder="Nickname" required />
-            <input type="number" id="level" placeholder="Level" min="0" required />
-            <input type="number" id="workshop" placeholder="Workshop Level" min="0" />
-            <input type="number" id="missed" placeholder="Missed Fights" min="0" />
-            <select id="role">
-                <option value="">Člen</option>
-                <option value="velitel">Velitel</option>
-                <option value="důstojník">Důstojník</option>
-            </select>
-            <button type="submit">Přidat hráče</button>
-        </form>
-
-        <div class="limits">
-            <h3>Limity dílny podle levelu:</h3>
-            <ul>
-                <li>Lvl 500+ → Dílna 20</li>
-                <li>Lvl 450+ → Dílna 19</li>
-                <li>Lvl 400+ → Dílna 18</li>
-                <li>Lvl 350+ → Dílna 17</li>
-                <li>Lvl 325+ → Dílna 16</li>
-                <li>Lvl 300+ → Dílna 15</li>
-                <li>Lvl 275+ → Dílna 14</li>
-                <li>Lvl 250+ → Dílna 13</li>
-                <li>Lvl 230+ → Dílna 12</li>
-                <li>Lvl 210+ → Dílna 11</li>
-                <li>Lvl 190+ → Dílna 10</li>
-                <li>Lvl 170+ → Dílna 9</li>
-                <li>Lvl 150+ → Dílna 8</li>
-                <li>Lvl 100+ → Dílna 7</li>
-            </ul>
-        </div>
-
-        <div class="update-time" id="playersTime"></div>
-    </div>
-</div>
-.role-icon {
-    display: inline-block;
-    font-size: 1.2em;
-    margin-left: 5px;
-}
-.velitel {
-    color: gold;
-}
-.dustojnik {
-    color: cyan;
-}
-function getRoleIcon(role) {
-    if (role === "velitel") return '<span class="role-icon velitel">👑</span>';
-    if (role === "důstojník") return '<span class="role-icon dustojnik">🛡️</span>';
-    return '';
-}
-<div id="xp" class="container section">
-    <div class="card">
-        <h2>XP Tournament</h2>
-        <table id="xpTable">
-            <thead>
-                <tr>
-                    <th>Rank</th>
-                    <th>Name</th>
-                    <th>XP Gained</th>
-                    <th>Akce</th>
-                </tr>
-            </thead>
-            <tbody></tbody>
-        </table>
-
-        <form id="addXPForm">
-            <input type="number" id="xpRank" placeholder="Rank" min="1" required />
-            <input type="text" id="xpName" placeholder="Name" required />
-            <input type="number" id="xpGained" placeholder="XP Gained" min="0" required />
-            <button type="submit">Přidat hráče</button>
-        </form>
-
-        <div>
-            <canvas id="xpChart"></canvas>
-        </div>
-
-        <div class="update-time" id="xpTime"></div>
-    </div>
+  </textarea>
 </div>
 
-canvas {
-    background-color: #2a2a3d;
-    border-radius: 10px;
-    padding: 10px;
-    box-shadow: 0 0 15px rgba(0,0,0,0.5);
-    margin-top: 20px;
-}
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<div id="players" class="section">
+  <h2>Players Info <span class="edit-icon" onclick="requestEditAccess()">✏️</span></h2>
+  
+  <div class="limits">
+    <h2>Limity dílny podle levelu:</h2>
+    <ul>
+        <li>Lvl 500+ → Dílna 20</li>
+        <li>Lvl 450+ → Dílna 19</li>
+        <li>Lvl 400+ → Dílna 18</li>
+        <li>Lvl 350+ → Dílna 17</li>
+        <li>Lvl 325+ → Dílna 16</li>
+        <li>Lvl 300+ → Dílna 15</li>
+        <li>Lvl 275+ → Dílna 14</li>
+        <li>Lvl 250+ → Dílna 13</li>
+        <li>Lvl 230+ → Dílna 12</li>
+        <li>Lvl 210+ → Dílna 11</li>
+        <li>Lvl 190+ → Dílna 10</li>
+        <li>Lvl 170+ → Dílna 9</li>
+        <li>Lvl 150+ → Dílna 8</li>
+        <li>Lvl 100+ → Dílna 7</li>
+    </ul>
+  </div>
+  
+  <button class="add-player" onclick="addPlayerRow('playersBody')">➕ Add Player</button>
+  
+  <table>
+    <thead>
+      <tr>
+        <th>Nickname</th>
+        <th>Level</th>
+        <th>Workshop Level</th>
+        <th>Workshop Status</th>
+        <th>Vynechané boje</th>
+      </tr>
+    </thead>
+    <tbody id="playersBody">
+    </tbody>
+  </table>
+</div>
 
-const xpData = [];
-const xpTable = document.querySelector('#xpTable tbody');
-const xpChartCtx = document.getElementById('xpChart').getContext('2d');
+<div id="xp" class="section">
+  <h2>XP Tournament <span class="edit-icon" onclick="requestEditAccess()">✏️</span></h2>
+  
+  <button class="update-btn" onclick="updateTournament('xp')">🔄 Aktualizovat</button>
+  <button class="add-player" onclick="addPlayerRow('xpBody')">➕ Add Player</button>
+  
+  <div class="tables-container">
+    <div class="table-wrapper">
+      <div class="update-info">Last updated: <span id="xpUpdateDate"></span></div>
+      <table>
+        <thead>
+          <tr>
+            <th>Rank</th>
+            <th>Name</th>
+            <th>XP Gained</th>
+          </tr>
+        </thead>
+        <tbody id="xpBody">
+          <tr><td>1</td><td contenteditable="false">Alfa</td><td contenteditable="false">1230</td></tr>
+          <tr><td>2</td><td contenteditable="false">Sazaro</td><td contenteditable="false">980</td></tr>
+          <tr><td>3</td><td contenteditable="false">Bandita</td><td contenteditable="false">840</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="chart-wrapper">
+      <canvas id="xpChart"></canvas>
+    </div>
+  </div>
+</div>
 
-const xpChart = new Chart(xpChartCtx, {
-    type: 'bar',
-    data: {
-        labels: [],
-        datasets: [{
-            label: 'XP Gained',
-            backgroundColor: '#00ffc8',
-            data: []
-        }]
-    },
-    options: {
-        responsive: true,
-        plugins: {
-            legend: { display: false },
-            title: {
-                display: true,
-                text: 'XP Tournament Progress'
-            }
-        },
-        scales: {
-            y: {
-                beginAtZero: true,
-                ticks: { color: '#f0f0f0' }
-            },
-            x: {
-                ticks: { color: '#f0f0f0' }
-            }
-        }
-    }
-});
+<div id="herocon" class="section">
+  <h2>HeroCon Tournament <span class="edit-icon" onclick="requestEditAccess()">✏️</span></h2>
+  
+  <button class="update-btn" onclick="updateTournament('herocon')">🔄 Aktualizovat</button>
+  <button class="add-player" onclick="addPlayerRow('heroconBody')">➕ Add Player</button>
+  
+  <div class="tables-container">
+    <div class="table-wrapper">
+      <div class="update-info">Last updated: <span id="heroconUpdateDate"></span></div>
+      <table>
+        <thead>
+          <tr>
+            <th>Rank</th>
+            <th>Name</th>
+            <th>HeroCon Gained</th>
+          </tr>
+        </thead>
+        <tbody id="heroconBody">
+          <tr><td>1</td><td contenteditable="false">Alfa</td><td contenteditable="false">540</td></tr>
+          <tr><td>2</td><td contenteditable="false">Sazaro</td><td contenteditable="false">480</td></tr>
+          <tr><td>3</td><td contenteditable="false">Bandita</td><td contenteditable="false">410</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="chart-wrapper">
+      <canvas id="heroconChart"></canvas>
+    </div>
+  </div>
+</div>
 
-function updateXPTable() {
-    xpTable.innerHTML = '';
-    xpChart.data.labels = [];
-    xpChart.data.datasets[0].data = [];
+<script>
+const password = "TopBanditi1";
+let unlocked = localStorage.getItem("unlocked") === "true";
+const limits = [
+    {level: 500, workshop: 20},
+    {level: 450, workshop: 19},
+    {level: 400, workshop: 18},
+    {level: 350, workshop: 17},
+    {level: 325, workshop: 16},
+    {level: 300, workshop: 15},
+    {level: 275, workshop: 14},
+    {level: 250, workshop: 13},
+    {level: 230, workshop: 12},
+    {level: 210, workshop: 11},
+    {level: 190, workshop: 10},
+    {level: 170, workshop: 9},
+    {level: 150, workshop: 8},
+    {level: 100, workshop: 7}
+];
 
-    xpData.sort((a, b) => a.rank - b.rank);
-
-    xpData.forEach((item, index) => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-            <td contenteditable="true" data-field="rank">${item.rank}</td>
-            <td contenteditable="true" data-field="name">${item.name}</td>
-            <td contenteditable="true" data-field="xp">${item.xp}</td>
-            <td><button onclick="deleteXP(${index})">Smazat</button></td>
-        `;
-        tr.querySelectorAll('[contenteditable="true"]').forEach(cell => {
-            cell.addEventListener('input', () => {
-                const field = cell.dataset.field;
-                const value = field === 'rank' || field === 'xp' ? Number(cell.innerText) : cell.innerText;
-                item[field] = value;
-                updateXPTable();
-                saveXPData();
-            });
-        });
-
-        xpTable.appendChild(tr);
-
-        xpChart.data.labels.push(item.name);
-        xpChart.data.datasets[0].data.push(item.xp);
-    });
-
-    xpChart.update();
-    document.getElementById('xpTime').innerText = 'Last updated: ' + new Date().toLocaleString();
-}
-
-function deleteXP(index) {
-    if (confirm(`Smazat hráče ${xpData[index].name}?`)) {
-        xpData.splice(index, 1);
-        updateXPTable();
-        saveXPData();
-    }
-}
-
-document.getElementById('addXPForm').addEventListener('submit', e => {
-    e.preventDefault();
-    const rank = Number(document.getElementById('xpRank').value);
-    const name = document.getElementById('xpName').value.trim();
-    const xp = Number(document.getElementById('xpGained').value);
-
-    if (!name || isNaN(rank) || isNaN(xp)) {
-        alert('Vyplň všechny pole správně!');
+function requestEditAccess() {
+    if (unlocked) {
+        enableEditing();
         return;
     }
-
-    xpData.push({ rank, name, xp });
-    updateXPTable();
-    e.target.reset();
-    saveXPData();
-});
-
-// Uložení a načtení z localStorage
-function saveXPData() {
-    localStorage.setItem('xpData', JSON.stringify(xpData));
-}
-function loadXPData() {
-    const data = JSON.parse(localStorage.getItem('xpData'));
-    if (data) {
-        xpData.push(...data);
-        updateXPTable();
+    
+    const input = prompt("Zadej heslo pro úpravu:");
+    if (input === password) {
+        localStorage.setItem("unlocked", "true");
+        unlocked = true;
+        alert("✅ Přístup povolen.");
+        enableEditing();
+    } else {
+        alert("❌ Špatné heslo.");
     }
 }
 
-loadXPData();
+function enableEditing() {
+    // Enable guild info editing
+    document.getElementById('guildInfo').readOnly = false;
+    
+    // Enable table editing (except rank columns)
+    document.querySelectorAll('td[contenteditable="false"]').forEach(el => {
+        if (!el.textContent.match(/^\d+$/) || el.textContent === "") { // Don't make rank numbers editable
+            el.setAttribute('contenteditable', 'true');
+        }
+    });
+    
+    // Show all edit icons
+    document.querySelectorAll('.edit-icon').forEach(icon => {
+        icon.style.display = 'inline';
+    });
+}
+
+function showSection(id) {
+    document.querySelectorAll('.section').forEach(sec => sec.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+}
+
+window.onload = () => {
+    showSection('players');
+    initializePlayersTable();
+    updateCharts();
+    setUpdateDates();
+    
+    if (!unlocked) {
+        document.getElementById('guildInfo').readOnly = true;
+        document.querySelectorAll('[contenteditable="false"]').forEach(el => {
+            el.setAttribute('contenteditable', 'false');
+        });
+    }
+};
+
+function setUpdateDates() {
+    const now = new Date();
+    const dateStr = now.toLocaleString('cs-CZ');
+    document.getElementById('xpUpdateDate').textContent = dateStr;
+    document.getElementById('heroconUpdateDate').textContent = dateStr;
+}
+
+function initializePlayersTable() {
+    const players = [
+        {name: "Sazaro", level: 372, workshop: 17, missed: 0},
+        {name: "Alfa", level: 482, workshop: 21, missed: 0},
+        {name: "Liones", level: 359, workshop: 17, missed: 0},
+        {name: "Bandita", level: 339, workshop: 16, missed: 0},
+        {name: "Blesk", level: 331, workshop: 19, missed: 0},
+        {name: "Ranny", level: 311, workshop: 17, missed: 0},
+        {name: "Loniz1337", level: 301, workshop: 18, missed: 0}
+    ];
+
+    const tbody = document.getElementById('playersBody');
+    players.forEach((p, index) => {
+        addPlayerRow('playersBody', p.name, p.level, p.workshop, p.missed);
+    });
+}
+
+function getRoleIcon(nickname) {
+    if (nickname === 'Sazaro') return '⭐ ';
+    if (['Alfa', 'Liones', 'Bandita', 'Blesk', 'Ranny', 'Loniz1337'].includes(nickname)) return '🔰 ';
+    return '';
+}
+
+function getMaxWorkshop(level) {
+    if (!level) return 0;
+    level = parseInt(level);
+    for (const limit of limits) {
+        if (level >= limit.level) {
+            return limit.workshop;
+        }
+    }
+    return 7;
+}
+
+function getWorkshopStatus(level, workshop) {
+    if (!level || !workshop) return "";
+    const max = getMaxWorkshop(level);
+    const diff = parseInt(workshop) - max;
+    
+    if (diff === 0) {
+        return '<span class="workshop-status">OK</span>';
+    } else if (diff > 0) {
+        return `<span class="workshop-status positive">+${diff}</span>`;
+    } else {
+        return `<span class="workshop-status negative">${diff}</span>`;
+    }
+}
+
+function addPlayerRow(tableId, name = "", level = "", workshop = "", missed = "") {
+    const tbody = document.getElementById(tableId);
+    const row = document.createElement('tr');
+    
+    if (tableId === 'playersBody') {
+        row.innerHTML = `
+            <td contenteditable="${unlocked}">${getRoleIcon(name) + name}</td>
+            <td contenteditable="${unlocked}">${level}</td>
+            <td contenteditable="${unlocked}">${workshop}</td>
+            <td>${getWorkshopStatus(level, workshop)}</td>
+            <td contenteditable="${unlocked}">${missed}</td>
+        `;
+        
+        // Add event listeners to update workshop status when level or workshop changes
+        const levelCell = row.cells[1];
+        const workshopCell = row.cells[2];
+        const statusCell = row.cells[3];
+        
+        const updateStatus = () => {
+            statusCell.innerHTML = getWorkshopStatus(levelCell.textContent, workshopCell.textContent);
+        };
+        
+        levelCell.addEventListener('blur', updateStatus);
+        workshopCell.addEventListener('blur', updateStatus);
+    } else {
+        const rowCount = tbody.querySelectorAll('tr').length + 1;
+        row.innerHTML = `
+            <td>${rowCount}</td>
+            <td contenteditable="${unlocked}">${name}</td>
+            <td contenteditable="${unlocked}">${level}</td>
+        `;
+    }
+    
+    tbody.appendChild(row);
+}
+
+function updateTournament(type) {
+    const now = new Date();
+    const dateStr = now.toLocaleString('cs-CZ');
+    
+    // Update the "last updated" date
+    document.getElementById(`${type}UpdateDate`).textContent = dateStr;
+    
+    // Get current data from the table
+    const tbody = document.getElementById(`${type}Body`);
+    const rows = tbody.querySelectorAll('tr');
+    const data = [];
+    
+    rows.forEach(row => {
+        const cells = row.querySelectorAll('td');
+        if (cells.length >= 3) {
+            data.push({
+                rank: cells[0].textContent,
+                name: cells[1].textContent,
+                value: cells[2].textContent
+            });
+        }
+    });
+    
+    // Sort data by value (descending)
+    data.sort((a, b) => parseInt(b.value) - parseInt(a.value));
+    
+    // Update ranks in the table
+    data.forEach((item, index) => {
+        const row = rows[index];
+        if (row) {
+            const cells = row.querySelectorAll('td');
+            cells[0].textContent = index + 1;
+            cells[1].textContent = item.name;
+            cells[2].textContent = item.value;
+        }
+    });
+    
+    // Update chart
+    updateCharts();
+}
+
+function updateCharts() {
+    // Get data from tables
+    const xpData = [];
+    const xpLabels = [];
+    document.querySelectorAll('#xpBody tr').forEach(row => {
+        const cells = row.querySelectorAll('td');
+        if (cells.length >= 3 && cells[1].textContent && cells[2].textContent) {
+            xpLabels.push(cells[1].textContent);
+            xpData.push(parseInt(cells[2].textContent) || 0);
+        }
+    });
+
+    const heroconData = [];
+    const heroconLabels = [];
+    document.querySelectorAll('#heroconBody tr').forEach(row => {
+        const cells = row.querySelectorAll('td');
+        if (cells.length >= 3 && cells[1].textContent && cells[2].textContent) {
+            heroconLabels.push(cells[1].textContent);
+            heroconData.push(parseInt(cells[2].textContent) || 0);
+        }
+    });
+
+    // XP Chart
+    const xpCanvas = document.getElementById('xpChart');
+    const xpCtx = xpCanvas.getContext('2d');
+    
+    // Destroy previous chart if it exists
+    if (window.xpChart) {
+        window.xpChart.destroy();
+    }
+    
+    window.xpChart = new Chart(xpCtx, {
+        type: 'bar',
+        data: {
+            labels: xpLabels,
+            datasets: [{
+                label: 'XP Gained',
+                data: xpData,
+                backgroundColor: '#00ffc8'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'XP Gained'
+                    }
+                },
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Players'
+                    }
+                }
+            }
+        }
+    });
+
+    // HeroCon Chart
+    const heroconCanvas = document.getElementById('heroconChart');
+    const heroconCtx = heroconCanvas.getContext('2d');
+    
+    // Destroy previous chart if it exists
+    if (window.heroconChart) {
+        window.heroconChart.destroy();
+    }
+    
+    window.heroconChart = new Chart(heroconCtx, {
+        type: 'bar',
+        data: {
+            labels: heroconLabels,
+            datasets: [{
+                label: 'HeroCon Gained',
+                data: heroconData,
+                backgroundColor: '#00ffc8'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'HeroCon Gained'
+                    }
+                },
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Players'
+                    }
+                }
+            }
+        }
+    });
+}
+</script>
+
+</body>
+</html>
