@@ -1,21 +1,22 @@
 <!DOCTYPE html>
 <html lang="cs">
 <head>
-<meta charset="UTF-8" />
-<title>Banditi Team Stats - Firebase</title>
+<meta charset="UTF-8">
+<title>Banditi - Team Stats</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
   body {
     background-color: #1f1f2e;
     color: #f0f0f0;
     font-family: 'Segoe UI', sans-serif;
-    padding: 30px;
+    padding: 20px;
   }
   .header {
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 15px;
-    margin-bottom: 30px;
+    margin-bottom: 20px;
   }
   .header img {
     height: 60px;
@@ -25,6 +26,30 @@
     color: #00ffc8;
     margin: 0;
     font-size: 2.2em;
+  }
+  .nav {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-bottom: 25px;
+  }
+  .nav button {
+    background-color: #00ffc8;
+    color: #1f1f2e;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+  }
+  .nav button:hover {
+    background-color: #00d1a8;
+  }
+  .section {
+    display: none;
+  }
+  .section.active {
+    display: block;
   }
   table {
     width: 100%;
@@ -55,254 +80,158 @@
     cursor: text;
     background-color: #3a3a56;
   }
-  form {
-    margin-top: 20px;
-    max-width: 700px;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    justify-content: center;
-  }
-  input {
-    padding: 5px 10px;
-    border-radius: 5px;
-    border: none;
-    width: 140px;
-    background-color: #1f1f2e;
-    color: #f0f0f0;
-  }
-  button {
-    padding: 8px 20px;
-    background-color: #00ffc8;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-weight: bold;
-  }
-  .status-ok { color: white; }
-  .status-over { color: lime; }
-  .status-under { color: red; }
-  .status-na { color: gray; }
-  .limits {
-    margin-top: 20px;
-    max-width: 700px;
-    margin-left: auto;
-    margin-right: auto;
-    background-color: #2a2a3d;
-    padding: 15px;
-    border-radius: 10px;
-    box-shadow: 0 0 10px rgba(0,255,200,0.3);
-  }
-  .limits h2 {
-    color: #00ffc8;
-    margin-top: 0;
-    margin-bottom: 10px;
-    text-align: center;
-  }
-  .limits ul {
-    list-style: none;
-    padding-left: 0;
-    text-align: center;
-    font-size: 16px;
-  }
-  .limits ul li {
-    padding: 3px 0;
-  }
 </style>
 </head>
 <body>
 
 <div class="header">
-  <img src="logo.png" alt="Banditi Logo" />
-  <h1>Banditi Team Stats</h1>
+  <img src="logo.png" alt="Logo">
+  <h1>Banditi - Team Stats</h1>
 </div>
 
-<table id="teamTable">
-  <thead>
-    <tr>
-      <th>Nickname</th>
-      <th>Level</th>
-      <th>Workshop Level</th>
-      <th>XP Rank</th>
-      <th>HeroCon Rank</th>
-      <th>Workshop Status</th>
-      <th>Vynechané boje</th>
-      <th>Akce</th>
-    </tr>
-  </thead>
-  <tbody></tbody>
-</table>
-
-<form id="addForm">
-  <input type="text" id="nickname" placeholder="Nickname" required />
-  <input type="number" id="level" placeholder="Level" min="0" required />
-  <input type="number" id="workshop" placeholder="Workshop Level" min="0" />
-  <input type="text" id="xpRank" placeholder="XP Rank" />
-  <input type="text" id="heroConRank" placeholder="HeroCon Rank" />
-  <input type="number" id="missedFights" placeholder="Vynechané boje" min="0" />
-  <button type="submit">Přidat hráče</button>
-</form>
-
-<div class="limits">
-  <h2>Limity dílny podle levelu:</h2>
-  <ul id="limitsList"></ul>
+<div class="nav">
+  <button onclick="showSection('guild')">🏰 Guild Info</button>
+  <button onclick="showSection('players')">👥 Players Info</button>
+  <button onclick="showSection('xp')">📈 XP Tournament</button>
+  <button onclick="showSection('herocon')">⚔️ HeroCon Tournament</button>
 </div>
 
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<div id="guild" class="section">
+  <h2>Guild Info</h2>
+  <textarea rows="10" cols="100" placeholder="Sem piš informace o guildě..."></textarea>
+</div>
+
+<div id="players" class="section">
+  <h2>Players Info</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Nickname</th>
+        <th>Level</th>
+        <th>Workshop Level</th>
+        <th>Workshop Status</th>
+        <th>Vynechané boje</th>
+      </tr>
+    </thead>
+    <tbody id="playersBody">
+    </tbody>
+  </table>
+</div>
+
+<div id="xp" class="section">
+  <h2>XP Tournament</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Rank</th>
+        <th>Name</th>
+        <th>XP Gained</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>1</td><td>Alfa</td><td>1230</td></tr>
+      <tr><td>2</td><td>Sazaro</td><td>980</td></tr>
+      <tr><td>3</td><td>Bandita</td><td>840</td></tr>
+    </tbody>
+  </table>
+  <canvas id="xpChart"></canvas>
+</div>
+
+<div id="herocon" class="section">
+  <h2>HeroCon Tournament</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Rank</th>
+        <th>Name</th>
+        <th>HeroCon Gained</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>1</td><td>Alfa</td><td>540</td></tr>
+      <tr><td>2</td><td>Sazaro</td><td>480</td></tr>
+      <tr><td>3</td><td>Bandita</td><td>410</td></tr>
+    </tbody>
+  </table>
+  <canvas id="heroconChart"></canvas>
+</div>
 
 <script>
-  const firebaseConfig = {
-    apiKey: "AIzaSyDlWV1eFKgh-B8_D_7bDQqf1PwgJEgMRaY",
-    authDomain: "banditi.firebaseapp.com",
-    projectId: "banditi",
-    storageBucket: "banditi.firebasestorage.app",
-    messagingSenderId: "319931947074",
-    appId: "1:319931947074:web:1c2687024644b731caf5db"
-  };
+const password = "TopBanditi1";
 
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.firestore();
-
-  const limits = [
-    {level: 100, workshop: 7},
-    {level: 150, workshop: 8},
-    {level: 170, workshop: 9},
-    {level: 190, workshop: 10},
-    {level: 210, workshop: 11},
-    {level: 230, workshop: 12},
-    {level: 250, workshop: 13},
-    {level: 275, workshop: 14},
-    {level: 300, workshop: 15},
-    {level: 325, workshop: 16},
-    {level: 350, workshop: 17},
-    {level: 400, workshop: 18},
-    {level: 450, workshop: 19},
-    {level: 500, workshop: 20}
-  ];
-
-  function getMaxWorkshop(level) {
-    let maxWorkshop = 0;
-    for (const limit of limits) {
-      if (level >= limit.level) {
-        maxWorkshop = limit.workshop;
-      } else {
-        break;
-      }
-    }
-    return maxWorkshop;
+if (localStorage.getItem("unlocked") !== "true") {
+  const input = prompt("Zadej heslo pro úpravu:");
+  if (input === password) {
+    localStorage.setItem("unlocked", "true");
+    alert("✅ Přístup povolen.");
+  } else {
+    alert("❌ Špatné heslo.");
+    document.querySelectorAll('[contenteditable], button, textarea').forEach(e => e.remove());
   }
+}
 
-  const tbody = document.querySelector('#teamTable tbody');
+function showSection(id) {
+  document.querySelectorAll('.section').forEach(sec => sec.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+window.onload = () => showSection('players');
 
-  function createRow(id, data) {
-    const tr = document.createElement('tr');
+const players = [
+  {name: "Sazaro", level: 372, workshop: 17, missed: 0},
+  {name: "Alfa", level: 482, workshop: 21, missed: 0},
+  {name: "Liones", level: 359, workshop: 17, missed: 0},
+  {name: "Bandita", level: 339, workshop: 16, missed: 0},
+  {name: "Blesk", level: 331, workshop: 19, missed: 0},
+  {name: "Ranny", level: 311, workshop: 17, missed: 0},
+  {name: "Loniz1337", level: 301, workshop: 18, missed: 0}
+];
 
-    tr.innerHTML = `
-      <td contenteditable="true" data-field="nickname">${data.nickname || ''}</td>
-      <td contenteditable="true" data-field="level">${data.level || ''}</td>
-      <td contenteditable="true" data-field="workshop">${data.workshop || ''}</td>
-      <td contenteditable="true" data-field="xpRank">${data.xpRank || ''}</td>
-      <td contenteditable="true" data-field="heroConRank">${data.heroConRank || ''}</td>
-      <td class="statusCell"></td>
-      <td contenteditable="true" data-field="missedFights">${data.missedFights || 0}</td>
-      <td><button class="deleteBtn">Smazat</button></td>
-    `;
+function getRoleIcon(nickname) {
+  if (nickname === 'Sazaro') return '⭐ ';
+  if (['Alfa', 'Liones', 'Bandita', 'Blesk', 'Ranny', 'Loniz1337'].includes(nickname)) return '🔰 ';
+  return '';
+}
 
-    function updateStatus() {
-      const level = parseInt(tr.querySelector('[data-field="level"]').innerText);
-      const workshop = parseInt(tr.querySelector('[data-field="workshop"]').innerText);
-      const statusCell = tr.querySelector('.statusCell');
+const tbody = document.getElementById('playersBody');
+players.forEach(p => {
+  const row = document.createElement('tr');
+  row.innerHTML = `
+    <td contenteditable="true">${getRoleIcon(p.name) + p.name}</td>
+    <td contenteditable="true">${p.level}</td>
+    <td contenteditable="true">${p.workshop}</td>
+    <td contenteditable="true">OK</td>
+    <td contenteditable="true">${p.missed}</td>
+  `;
+  tbody.appendChild(row);
+});
 
-      if (!isNaN(level) && !isNaN(workshop)) {
-        const maxWorkshop = getMaxWorkshop(level);
-        const diff = workshop - maxWorkshop;
+// XP Chart
+new Chart(document.getElementById('xpChart'), {
+  type: 'bar',
+  data: {
+    labels: ['Alfa', 'Sazaro', 'Bandita'],
+    datasets: [{
+      label: 'XP Gained',
+      data: [1230, 980, 840],
+      backgroundColor: '#00ffc8'
+    }]
+  },
+  options: {scales: {y: {beginAtZero: true}}}
+});
 
-        if (diff === 0) statusCell.innerHTML = `<span class="status-ok">OK</span>`;
-        else if (diff > 0) statusCell.innerHTML = `<span class="status-over">+${diff} nad limitem</span>`;
-        else statusCell.innerHTML = `<span class="status-under">${diff} pod limitem</span>`;
-      } else {
-        statusCell.innerHTML = `<span class="status-na">N/A</span>`;
-      }
-    }
-    updateStatus();
-
-    tr.querySelectorAll('[contenteditable="true"]').forEach(cell => {
-      cell.addEventListener('input', () => {
-        const field = cell.dataset.field;
-        let value = cell.innerText.trim();
-
-        if (['level', 'workshop', 'missedFights'].includes(field)) {
-          value = value === '' ? null : Number(value);
-          if (isNaN(value)) value = null;
-        }
-
-        if (field === 'level' || field === 'workshop') updateStatus();
-
-        const updateData = {};
-        updateData[field] = value;
-        db.collection('players').doc(id).update(updateData).catch(console.error);
-      });
-    });
-
-    tr.querySelector('.deleteBtn').addEventListener('click', () => {
-      if(confirm(`Smazat hráče ${data.nickname}?`)) {
-        db.collection('players').doc(id).delete();
-      }
-    });
-
-    return tr;
-  }
-
-  window.addEventListener('DOMContentLoaded', () => {
-    const limitsList = document.getElementById('limitsList');
-    limits.forEach(l => {
-      const li = document.createElement('li');
-      li.textContent = `Lvl ${l.level}+ → Dílna ${l.workshop}`;
-      limitsList.appendChild(li);
-    });
-
-    loadData();
-  });
-
-  function loadData() {
-    tbody.innerHTML = '';
-    db.collection('players').orderBy('level', 'desc').onSnapshot(snapshot => {
-      tbody.innerHTML = '';
-      snapshot.forEach(doc => {
-        const row = createRow(doc.id, doc.data());
-        tbody.appendChild(row);
-      });
-    }, error => {
-      console.error("Chyba načtení dat:", error);
-    });
-  }
-
-  document.getElementById('addForm').addEventListener('submit', e => {
-    e.preventDefault();
-    const nickname = document.getElementById('nickname').value.trim();
-    const level = Number(document.getElementById('level').value);
-    const workshop = Number(document.getElementById('workshop').value) || null;
-    const xpRank = document.getElementById('xpRank').value.trim();
-    const heroConRank = document.getElementById('heroConRank').value.trim();
-    const missedFights = Number(document.getElementById('missedFights').value) || 0;
-
-    if (!nickname || isNaN(level)) {
-      alert("Vyplň prosím Nickname a platný Level.");
-      return;
-    }
-
-    db.collection('players').add({
-      nickname,
-      level,
-      workshop,
-      xpRank,
-      heroConRank,
-      missedFights
-    }).then(() => {
-      e.target.reset();
-    }).catch(console.error);
-  });
+// HeroCon Chart
+new Chart(document.getElementById('heroconChart'), {
+  type: 'bar',
+  data: {
+    labels: ['Alfa', 'Sazaro', 'Bandita'],
+    datasets: [{
+      label: 'HeroCon Gained',
+      data: [540, 480, 410],
+      backgroundColor: '#00ffc8'
+    }]
+  },
+  options: {scales: {y: {beginAtZero: true}}}
+});
 </script>
 
 </body>
