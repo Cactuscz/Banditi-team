@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html lang="cs">
 <head>
-<meta charset="UTF-8">
+<meta charset="UTF-8" />
 <title>Banditi - Team Stats</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
   body {
     background-color: #1f1f2e;
@@ -58,7 +59,7 @@
     border-radius: 10px;
     overflow: hidden;
     box-shadow: 0 0 15px rgba(0,0,0,0.5);
-    margin-bottom: 30px;
+    margin-bottom: 10px;
   }
   th, td {
     padding: 12px 18px;
@@ -172,12 +173,32 @@
     width: 100% !important;
     height: 400px !important;
   }
+  .history {
+    background-color: #262636;
+    border-radius: 10px;
+    padding: 10px;
+    margin-top: 10px;
+    max-height: 150px;
+    overflow-y: auto;
+    font-size: 0.9em;
+  }
+  .history h3 {
+    margin-top: 0;
+    color: #00ffc8;
+  }
+  .history-entry {
+    border-bottom: 1px solid #3c3c50;
+    padding: 6px 0;
+  }
+  .history-entry:last-child {
+    border-bottom: none;
+  }
 </style>
 </head>
 <body>
 
 <div class="header">
-  <img src="logo.png" alt="Logo">
+  <img src="logo.png" alt="Logo" />
   <h1>Banditi - Team Stats</h1>
 </div>
 
@@ -366,6 +387,7 @@ Villains:
   
   <button class="update-btn" onclick="updateTournament('xp')">🔄 Aktualizovat</button>
   <button class="add-player" onclick="addPlayerRow('xpBody')">➕ Add Player</button>
+  <button class="update-btn" onclick="saveTableAsPDF('xp')">📄 Uložit do PDF</button>
   
   <div class="tables-container">
     <div class="table-wrapper">
@@ -379,15 +401,19 @@ Villains:
           </tr>
         </thead>
         <tbody id="xpBody">
-          <tr><td>1</td><td contenteditable="false">Alfa</td><td contenteditable="false">1230</td></tr>
-          <tr><td>2</td><td contenteditable="false">Sazaro</td><td contenteditable="false">980</td></tr>
-          <tr><td>3</td><td contenteditable="false">Bandita</td><td contenteditable="false">840</td></tr>
+          <tr><td>1</td><td contenteditable="true">Alfa</td><td contenteditable="true">1230</td></tr>
+          <tr><td>2</td><td contenteditable="true">Sazaro</td><td contenteditable="true">980</td></tr>
+          <tr><td>3</td><td contenteditable="true">Bandita</td><td contenteditable="true">840</td></tr>
         </tbody>
       </table>
     </div>
     <div class="chart-wrapper">
       <canvas id="xpChart"></canvas>
     </div>
+  </div>
+  <div class="history" id="xpHistory">
+    <h3>History</h3>
+    <div id="xpHistoryEntries"></div>
   </div>
 </div>
 
@@ -396,6 +422,7 @@ Villains:
   
   <button class="update-btn" onclick="updateTournament('herocon')">🔄 Aktualizovat</button>
   <button class="add-player" onclick="addPlayerRow('heroconBody')">➕ Add Player</button>
+  <button class="update-btn" onclick="saveTableAsPDF('herocon')">📄 Uložit do PDF</button>
   
   <div class="tables-container">
     <div class="table-wrapper">
@@ -405,13 +432,13 @@ Villains:
           <tr>
             <th>Rank</th>
             <th>Name</th>
-            <th>HeroCon Gained</th>
+            <th>HeroCon Points</th>
           </tr>
         </thead>
         <tbody id="heroconBody">
-          <tr><td>1</td><td contenteditable="false">Alfa</td><td contenteditable="false">540</td></tr>
-          <tr><td>2</td><td contenteditable="false">Sazaro</td><td contenteditable="false">480</td></tr>
-          <tr><td>3</td><td contenteditable="false">Bandita</td><td contenteditable="false">410</td></tr>
+          <tr><td>1</td><td contenteditable="true">Sazaro</td><td contenteditable="true">1500</td></tr>
+          <tr><td>2</td><td contenteditable="true">Alfa</td><td contenteditable="true">1300</td></tr>
+          <tr><td>3</td><td contenteditable="true">Bandita</td><td contenteditable="true">1100</td></tr>
         </tbody>
       </table>
     </div>
@@ -419,316 +446,314 @@ Villains:
       <canvas id="heroconChart"></canvas>
     </div>
   </div>
+  <div class="history" id="heroconHistory">
+    <h3>History</h3>
+    <div id="heroconHistoryEntries"></div>
+  </div>
 </div>
 
 <script>
-const password = "TopBanditi1";
-let unlocked = localStorage.getItem("unlocked") === "true";
-const limits = [
-    {level: 500, workshop: 20},
-    {level: 450, workshop: 19},
-    {level: 400, workshop: 18},
-    {level: 350, workshop: 17},
-    {level: 325, workshop: 16},
-    {level: 300, workshop: 15},
-    {level: 275, workshop: 14},
-    {level: 250, workshop: 13},
-    {level: 230, workshop: 12},
-    {level: 210, workshop: 11},
-    {level: 190, workshop: 10},
-    {level: 170, workshop: 9},
-    {level: 150, workshop: 8},
-    {level: 100, workshop: 7}
-];
-
-function requestEditAccess() {
-    if (unlocked) {
-        enableEditing();
-        return;
-    }
-    
-    const input = prompt("Zadej heslo pro úpravu:");
-    if (input === password) {
-        localStorage.setItem("unlocked", "true");
-        unlocked = true;
-        alert("✅ Přístup povolen.");
-        enableEditing();
-    } else {
-        alert("❌ Špatné heslo.");
-    }
-}
-
-function enableEditing() {
-    // Enable guild info editing
-    document.getElementById('guildInfo').readOnly = false;
-    
-    // Enable table editing (except rank columns)
-    document.querySelectorAll('td[contenteditable="false"]').forEach(el => {
-        if (!el.textContent.match(/^\d+$/) || el.textContent === "") { // Don't make rank numbers editable
-            el.setAttribute('contenteditable', 'true');
-        }
-    });
-    
-    // Show all edit icons
-    document.querySelectorAll('.edit-icon').forEach(icon => {
-        icon.style.display = 'inline';
-    });
-}
-
-function showSection(id) {
-    document.querySelectorAll('.section').forEach(sec => sec.classList.remove('active'));
+  // Základní přepínání sekcí
+  function showSection(id) {
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
     document.getElementById(id).classList.add('active');
-}
+  }
+  // Inicializace na první záložku
+  showSection('guild');
 
-window.onload = () => {
-    showSection('players');
-    initializePlayersTable();
-    updateCharts();
-    setUpdateDates();
-    
-    if (!unlocked) {
-        document.getElementById('guildInfo').readOnly = true;
-        document.querySelectorAll('[contenteditable="false"]').forEach(el => {
-            el.setAttribute('contenteditable', 'false');
-        });
+  // Přidat řádek hráče
+  function addPlayerRow(tbodyId) {
+    const tbody = document.getElementById(tbodyId);
+    const rank = tbody.children.length + 1;
+    const tr = document.createElement('tr');
+
+    if(tbodyId === 'playersBody') {
+      // Pro players info tabulku (5 sloupců)
+      tr.innerHTML = `
+        <td contenteditable="true"></td>
+        <td contenteditable="true"></td>
+        <td contenteditable="true"></td>
+        <td contenteditable="true"></td>
+        <td contenteditable="true"></td>
+      `;
+    } else {
+      // Pro XP a HeroCon tabulky (3 sloupce, první bez editace)
+      tr.innerHTML = `
+        <td>${rank}</td>
+        <td contenteditable="true"></td>
+        <td contenteditable="true"></td>
+      `;
     }
-};
+    tbody.appendChild(tr);
+    if(tbodyId !== 'playersBody') {
+      updateTournament(tbodyId.replace('Body','')); // Aby se hned překreslil graf a aktualizoval ranky
+    }
+  }
 
-function setUpdateDates() {
-    const now = new Date();
-    const dateStr = now.toLocaleString('cs-CZ');
-    document.getElementById('xpUpdateDate').textContent = dateStr;
-    document.getElementById('heroconUpdateDate').textContent = dateStr;
-}
+  // Update turnaje (XP / HeroCon)
+  function updateTournament(type) {
+    const tbody = document.getElementById(type+'Body');
+    const rows = [...tbody.rows];
 
-function initializePlayersTable() {
-    const players = [
-        {name: "Sazaro", level: 372, workshop: 17, missed: 0},
-        {name: "Alfa", level: 482, workshop: 21, missed: 0},
-        {name: "Liones", level: 359, workshop: 17, missed: 0},
-        {name: "Bandita", level: 339, workshop: 16, missed: 0},
-        {name: "Blesk", level: 331, workshop: 19, missed: 0},
-        {name: "Ranny", level: 311, workshop: 17, missed: 0},
-        {name: "Loniz1337", level: 301, workshop: 18, missed: 0}
-    ];
-
-    const tbody = document.getElementById('playersBody');
-    players.forEach((p, index) => {
-        addPlayerRow('playersBody', p.name, p.level, p.workshop, p.missed);
+    // Seřadit podle hodnot ve 3. sloupci (XP nebo HC body) sestupně
+    rows.sort((a,b) => {
+      let aVal = parseInt(a.cells[2].textContent) || 0;
+      let bVal = parseInt(b.cells[2].textContent) || 0;
+      return bVal - aVal;
     });
-}
 
-function getRoleIcon(nickname) {
-    if (nickname === 'Sazaro') return '⭐ ';
-    if (['Alfa', 'Liones', 'Bandita', 'Blesk', 'Ranny', 'Loniz1337'].includes(nickname)) return '🔰 ';
-    return '';
-}
+    // Aktualizovat pořadí (rank)
+    rows.forEach((row,i) => {
+      row.cells[0].textContent = i+1;
+    });
 
-function getMaxWorkshop(level) {
-    if (!level) return 0;
-    level = parseInt(level);
-    for (const limit of limits) {
-        if (level >= limit.level) {
-            return limit.workshop;
-        }
-    }
-    return 7;
-}
+    // Vložit zpět do tabulky
+    tbody.innerHTML = '';
+    rows.forEach(r => tbody.appendChild(r));
 
-function getWorkshopStatus(level, workshop) {
-    if (!level || !workshop) return "";
-    const max = getMaxWorkshop(level);
-    const diff = parseInt(workshop) - max;
-    
-    if (diff === 0) {
-        return '<span class="workshop-status">OK</span>';
-    } else if (diff > 0) {
-        return `<span class="workshop-status positive">+${diff}</span>`;
-    } else {
-        return `<span class="workshop-status negative">${diff}</span>`;
-    }
-}
-
-function addPlayerRow(tableId, name = "", level = "", workshop = "", missed = "") {
-    const tbody = document.getElementById(tableId);
-    const row = document.createElement('tr');
-    
-    if (tableId === 'playersBody') {
-        row.innerHTML = `
-            <td contenteditable="${unlocked}">${getRoleIcon(name) + name}</td>
-            <td contenteditable="${unlocked}">${level}</td>
-            <td contenteditable="${unlocked}">${workshop}</td>
-            <td>${getWorkshopStatus(level, workshop)}</td>
-            <td contenteditable="${unlocked}">${missed}</td>
-        `;
-        
-        // Add event listeners to update workshop status when level or workshop changes
-        const levelCell = row.cells[1];
-        const workshopCell = row.cells[2];
-        const statusCell = row.cells[3];
-        
-        const updateStatus = () => {
-            statusCell.innerHTML = getWorkshopStatus(levelCell.textContent, workshopCell.textContent);
-        };
-        
-        levelCell.addEventListener('blur', updateStatus);
-        workshopCell.addEventListener('blur', updateStatus);
-    } else {
-        const rowCount = tbody.querySelectorAll('tr').length + 1;
-        row.innerHTML = `
-            <td>${rowCount}</td>
-            <td contenteditable="${unlocked}">${name}</td>
-            <td contenteditable="${unlocked}">${level}</td>
-        `;
-    }
-    
-    tbody.appendChild(row);
-}
-
-function updateTournament(type) {
+    // Aktualizovat datum poslední aktualizace
     const now = new Date();
-    const dateStr = now.toLocaleString('cs-CZ');
-    
-    // Update the "last updated" date
-    document.getElementById(`${type}UpdateDate`).textContent = dateStr;
-    
-    // Get current data from the table
-    const tbody = document.getElementById(`${type}Body`);
-    const rows = tbody.querySelectorAll('tr');
+    const dateString = now.toLocaleString('cs-CZ', { dateStyle: 'short', timeStyle: 'short' });
+    document.getElementById(type+'UpdateDate').textContent = dateString;
+
+    // Aktualizovat graf
+    updateChart(type);
+
+    // Uložit do historie
+    saveHistory(type);
+  }
+
+  // Vytvořit grafy
+  let xpChart = null;
+  let heroconChart = null;
+
+  function updateChart(type) {
+    const tbody = document.getElementById(type+'Body');
+    const labels = [];
     const data = [];
-    
-    rows.forEach(row => {
-        const cells = row.querySelectorAll('td');
-        if (cells.length >= 3) {
-            data.push({
-                rank: cells[0].textContent,
-                name: cells[1].textContent,
-                value: cells[2].textContent
-            });
-        }
-    });
-    
-    // Sort data by value (descending)
-    data.sort((a, b) => parseInt(b.value) - parseInt(a.value));
-    
-    // Update ranks in the table
-    data.forEach((item, index) => {
-        const row = rows[index];
-        if (row) {
-            const cells = row.querySelectorAll('td');
-            cells[0].textContent = index + 1;
-            cells[1].textContent = item.name;
-            cells[2].textContent = item.value;
-        }
-    });
-    
-    // Update chart
-    updateCharts();
-}
 
-function updateCharts() {
-    // Get data from tables
-    const xpData = [];
-    const xpLabels = [];
-    document.querySelectorAll('#xpBody tr').forEach(row => {
-        const cells = row.querySelectorAll('td');
-        if (cells.length >= 3 && cells[1].textContent && cells[2].textContent) {
-            xpLabels.push(cells[1].textContent);
-            xpData.push(parseInt(cells[2].textContent) || 0);
-        }
-    });
-
-    const heroconData = [];
-    const heroconLabels = [];
-    document.querySelectorAll('#heroconBody tr').forEach(row => {
-        const cells = row.querySelectorAll('td');
-        if (cells.length >= 3 && cells[1].textContent && cells[2].textContent) {
-            heroconLabels.push(cells[1].textContent);
-            heroconData.push(parseInt(cells[2].textContent) || 0);
-        }
-    });
-
-    // XP Chart
-    const xpCanvas = document.getElementById('xpChart');
-    const xpCtx = xpCanvas.getContext('2d');
-    
-    // Destroy previous chart if it exists
-    if (window.xpChart) {
-        window.xpChart.destroy();
+    for(let row of tbody.rows) {
+      labels.push(row.cells[1].textContent.trim());
+      data.push(parseInt(row.cells[2].textContent.trim()) || 0);
     }
-    
-    window.xpChart = new Chart(xpCtx, {
+
+    if(type === 'xp') {
+      if(xpChart) xpChart.destroy();
+      const ctx = document.getElementById('xpChart').getContext('2d');
+      xpChart = new Chart(ctx, {
         type: 'bar',
         data: {
-            labels: xpLabels,
-            datasets: [{
-                label: 'XP Gained',
-                data: xpData,
-                backgroundColor: '#00ffc8'
-            }]
+          labels: labels,
+          datasets: [{
+            label: 'XP Gained',
+            data: data,
+            backgroundColor: 'rgba(0, 255, 200, 0.6)',
+            borderColor: 'rgba(0, 255, 200, 1)',
+            borderWidth: 1
+          }]
         },
         options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    title: {
-                        display: true,
-                        text: 'XP Gained'
-                    }
-                },
-                x: {
-                    title: {
-                        display: true,
-                        text: 'Players'
-                    }
-                }
+          responsive:true,
+          scales: {
+            y: {
+              beginAtZero: true
             }
+          }
         }
-    });
-
-    // HeroCon Chart
-    const heroconCanvas = document.getElementById('heroconChart');
-    const heroconCtx = heroconCanvas.getContext('2d');
-    
-    // Destroy previous chart if it exists
-    if (window.heroconChart) {
-        window.heroconChart.destroy();
-    }
-    
-    window.heroconChart = new Chart(heroconCtx, {
+      });
+    } else if(type === 'herocon') {
+      if(heroconChart) heroconChart.destroy();
+      const ctx = document.getElementById('heroconChart').getContext('2d');
+      heroconChart = new Chart(ctx, {
         type: 'bar',
         data: {
-            labels: heroconLabels,
-            datasets: [{
-                label: 'HeroCon Gained',
-                data: heroconData,
-                backgroundColor: '#00ffc8'
-            }]
+          labels: labels,
+          datasets: [{
+            label: 'HeroCon Points',
+            data: data,
+            backgroundColor: 'rgba(0, 255, 200, 0.6)',
+            borderColor: 'rgba(0, 255, 200, 1)',
+            borderWidth: 1
+          }]
         },
         options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    title: {
-                        display: true,
-                        text: 'HeroCon Gained'
-                    }
-                },
-                x: {
-                    title: {
-                        display: true,
-                        text: 'Players'
-                    }
-                }
+          responsive:true,
+          scales: {
+            y: {
+              beginAtZero: true
             }
+          }
         }
+      });
+    }
+  }
+
+  // Uložit historii tabulky do localStorage
+  function saveHistory(type) {
+    const tbody = document.getElementById(type+'Body');
+    // Uložit aktuální stav tabulky jako JSON
+    const rowsData = [];
+    for(let row of tbody.rows) {
+      const rowCells = [];
+      for(let i=0; i<row.cells.length; i++) {
+        rowCells.push(row.cells[i].textContent.trim());
+      }
+      rowsData.push(rowCells);
+    }
+    // Načíst existující historii
+    let history = JSON.parse(localStorage.getItem(type+'History') || '[]');
+    // Přidat novou položku s timestampem a daty
+    const now = new Date();
+    history.unshift({
+      timestamp: now.toLocaleString('cs-CZ', { dateStyle: 'short', timeStyle: 'short' }),
+      data: rowsData
     });
-}
+    // Omezit historii na max 10 položek
+    if(history.length > 10) history.pop();
+    localStorage.setItem(type+'History', JSON.stringify(history));
+    renderHistory(type);
+  }
+
+  // Načíst a vykreslit historii
+  function renderHistory(type) {
+    const container = document.getElementById(type+'HistoryEntries');
+    container.innerHTML = '';
+    let history = JSON.parse(localStorage.getItem(type+'History') || '[]');
+    if(history.length === 0) {
+      container.innerHTML = '<p>(Žádná historie)</p>';
+      return;
+    }
+    history.forEach((entry, index) => {
+      const div = document.createElement('div');
+      div.className = 'history-entry';
+      div.innerHTML = `
+        <strong>${entry.timestamp}</strong> 
+        <button onclick="loadHistory('${type}', ${index})">Načíst</button> 
+        <button onclick="deleteHistory('${type}', ${index})" style="color:#ff4d4d;">Smazat</button>
+      `;
+      container.appendChild(div);
+    });
+  }
+
+  // Načíst uloženou historii do tabulky
+  function loadHistory(type, index) {
+    let history = JSON.parse(localStorage.getItem(type+'History') || '[]');
+    if(history[index]) {
+      const tbody = document.getElementById(type+'Body');
+      tbody.innerHTML = '';
+      for(let rowData of history[index].data) {
+        const tr = document.createElement('tr');
+        for(let i=0; i<rowData.length; i++) {
+          // První sloupec Rank není editable, ostatní ano
+          if(i === 0 && (type === 'xp' || type === 'herocon')) {
+            tr.innerHTML += `<td>${rowData[i]}</td>`;
+          } else {
+            tr.innerHTML += `<td contenteditable="true">${rowData[i]}</td>`;
+          }
+        }
+        tbody.appendChild(tr);
+      }
+      updateTournament(type);
+    }
+  }
+
+  // Smazat položku z historie
+  function deleteHistory(type, index) {
+    let history = JSON.parse(localStorage.getItem(type+'History') || '[]');
+    history.splice(index, 1);
+    localStorage.setItem(type+'History', JSON.stringify(history));
+    renderHistory(type);
+  }
+
+  // Uložit tabulku do PDF
+  async function saveTableAsPDF(type) {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+
+    // Titulek
+    doc.setFontSize(16);
+    doc.text(type === 'xp' ? 'XP Tournament' : 'HeroCon Tournament', 10, 15);
+
+    // Připravit data z tabulky
+    const tbody = document.getElementById(type+'Body');
+    const headers = [];
+    document.querySelectorAll(`#${type} table thead th`).forEach(th => headers.push(th.textContent.trim()));
+
+    const rows = [];
+    for(let row of tbody.rows) {
+      const rowData = [];
+      for(let cell of row.cells) {
+        rowData.push(cell.textContent.trim());
+      }
+      rows.push(rowData);
+    }
+
+    // Přidat tabulku
+    doc.autoTable({
+      head: [headers],
+      body: rows,
+      startY: 25,
+      styles: { fillColor: [0, 255, 200], textColor: 30 },
+      headStyles: { fillColor: [0, 180, 150], textColor: 255 },
+      theme: 'grid'
+    });
+
+    // Přidat datum exportu dole
+    const now = new Date();
+    doc.setFontSize(10);
+    doc.text('Exportováno: ' + now.toLocaleString('cs-CZ'), 10, doc.internal.pageSize.height - 10);
+
+    doc.save(type + '_tournament.pdf');
+  }
+
+  // Počáteční naplnění players info tabulky
+  function initializePlayers() {
+    const playersData = [
+      ['Alfa', '520', '20', 'Online', '0'],
+      ['Sazaro', '480', '19', 'Offline', '1'],
+      ['Bandita', '450', '18', 'Online', '2'],
+      ['Blesk', '430', '17', 'Online', '0'],
+      ['Ranny', '400', '16', 'Offline', '3'],
+      ['Loniz1337', '380', '15', 'Online', '0']
+    ];
+    const tbody = document.getElementById('playersBody');
+    tbody.innerHTML = '';
+    playersData.forEach(row => {
+      const tr = document.createElement('tr');
+      row.forEach(cell => {
+        const td = document.createElement('td');
+        td.contentEditable = 'true';
+        td.textContent = cell;
+        tr.appendChild(td);
+      });
+      tbody.appendChild(tr);
+    });
+  }
+
+  // Vyžádat editaci guild info textarea
+  function requestEditAccess() {
+    const pw = prompt("Zadej heslo pro úpravu:");
+    if(pw === "TopBanditi1") {
+      const guild = document.getElementById('guildInfo');
+      guild.removeAttribute('readonly');
+      alert("Editace povolena! Po dokončení nezapomeň uložit změny.");
+    } else {
+      alert("Špatné heslo.");
+    }
+  }
+
+  // Inicializace
+  window.onload = () => {
+    initializePlayers();
+    updateTournament('xp');
+    updateTournament('herocon');
+    renderHistory('xp');
+    renderHistory('herocon');
+  }
 </script>
+
+<!-- Přidání autoTable pluginu do jspdf pro lepší tabulky -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
 
 </body>
 </html>
