@@ -1,333 +1,484 @@
 <!DOCTYPE html>
 <html lang="cs">
 <head>
-<meta charset="UTF-8">
+<meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Banditi Team Stats</title>
 <style>
-:root {
-    --main-bg: #1f1f2e;
-    --card-bg: #2a2a3d;
-    --header-bg: #34344a;
-    --accent: #00ffc8;
-    --hover-bg: #3a3a56;
-}
-
 body {
-    background-color: var(--main-bg);
+    background-color: #1f1f2e;
     color: #f0f0f0;
     font-family: 'Segoe UI', sans-serif;
     margin: 0;
-    padding: 20px;
+    padding: 0;
 }
-
-.header {
+header {
+    background-color: #2a2a3d;
+    padding: 20px;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 15px;
-    margin-bottom: 20px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.5);
 }
-
-.header img {
+header img {
     height: 60px;
 }
-
-.header h1 {
-    color: var(--accent);
+header h1 {
+    color: #00ffc8;
     margin: 0;
-    font-size: 2.2em;
+    font-size: 2em;
 }
-
-.nav {
+nav {
+    background-color: #2a2a3d;
     display: flex;
     justify-content: center;
-    gap: 15px;
-    margin-bottom: 25px;
-    flex-wrap: wrap;
-}
-
-.nav button {
-    background-color: var(--accent);
-    color: var(--main-bg);
-    border: none;
-    padding: 8px 16px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: bold;
-    transition: 0.3s;
-}
-
-.nav button:hover {
-    background-color: #00d1a8;
-}
-
-.container {
-    display: flex;
-    flex-wrap: wrap;
     gap: 20px;
-    justify-content: center;
+    padding: 10px 0;
 }
-
+nav button {
+    background-color: transparent;
+    border: none;
+    color: #00ffc8;
+    cursor: pointer;
+    font-size: 1em;
+    padding: 8px 15px;
+    border-radius: 8px;
+}
+nav button:hover {
+    background-color: #00ffc8;
+    color: #1f1f2e;
+}
+.container {
+    padding: 20px;
+}
 .card {
-    background-color: var(--card-bg);
-    padding: 15px;
+    background-color: #2a2a3d;
+    padding: 20px;
     border-radius: 10px;
-    box-shadow: 0 0 15px rgba(0,0,0,0.5);
-    min-width: 300px;
-    flex: 1;
+    box-shadow: 0 0 10px rgba(0,255,200,0.3);
+    margin-bottom: 30px;
 }
-
-h2 {
-    color: var(--accent);
-    margin-top: 0;
-}
-
 table {
     width: 100%;
     border-collapse: collapse;
     margin-bottom: 10px;
 }
-
 th, td {
-    padding: 8px;
+    padding: 10px;
     text-align: center;
     border-bottom: 1px solid #3c3c50;
 }
-
 th {
-    background-color: var(--header-bg);
-    color: var(--accent);
+    background-color: #34344a;
+    color: #00ffc8;
 }
-
 tr:nth-child(even) {
     background-color: #262636;
 }
-
 tr:hover {
-    background-color: var(--hover-bg);
+    background-color: #3a3a56;
 }
-
 td[contenteditable="true"] {
-    background-color: var(--hover-bg);
     cursor: text;
+    background-color: #3a3a56;
 }
-
-textarea {
-    width: 100%;
-    min-height: 300px;
-    background-color: var(--hover-bg);
-    color: white;
+button {
+    padding: 6px 12px;
+    background-color: #00ffc8;
     border: none;
-    padding: 10px;
-    border-radius: 8px;
+    border-radius: 5px;
+    cursor: pointer;
+    color: #1f1f2e;
+    font-weight: bold;
 }
-
+button:hover {
+    background-color: #00ddb3;
+}
 .update-time {
     font-size: 0.9em;
-    color: #bbb;
+    color: gray;
     text-align: right;
+}
+.limits {
+    margin-top: 15px;
+    background-color: #1f1f2e;
+    padding: 10px;
+    border-radius: 8px;
+    box-shadow: 0 0 5px rgba(0,255,200,0.2);
+}
+.section {
+    display: none;
+}
+.section.active {
+    display: block;
 }
 </style>
 </head>
-
 <body>
 
-<div class="header">
-    <img src="logo.png" alt="Logo">
+<header>
+    <img src="logo.png" alt="Banditi">
     <h1>Banditi Team Stats</h1>
+</header>
+
+<nav>
+    <button onclick="showSection('guild')">Guild Info</button>
+    <button onclick="showSection('players')">Players Info</button>
+    <button onclick="showSection('xp')">XP Tournament</button>
+    <button onclick="showSection('herocon')">HeroCon Tournament</button>
+</nav>
+
+<div id="guild" class="container section active">
+    <div class="card">
+    <h2>Guild Info</h2>
+        <div id="guildContent" contenteditable="true" style="white-space: pre-wrap;">
+
+Casino:
+
+Casino with high quality rewards
+2025-07-02 00:00:00 - 2025-07-05 23:59:59
+
+“Chic Hero Hideout” Casino
+2025-07-08 00:00:00 - 2025-07-13 23:59:59
+
+Casino with high quality rewards
+2025-07-18 00:00:00 - 2025-07-21 23:59:59
+
+Casino without Coins or Experience Points, but with higher chance of all other prizes
+2025-07-25 00:00:00 - 2025-07-28 23:59:59
+
+
+Bonus Days:
+
+Double Coins from Missions
+2025-07-02 00:00:00 - 2025-07-05 23:59:59
+
+Double Energy for Missions
+2025-07-18 00:00:00 - 2025-07-21 23:59:59
+
+Double Motivation Units
+2025-07-26 00:00:00 - 2025-07-28 23:59:59
+
+
+Events:
+
+Summer Begins
+2025-06-21 00:00:00 - 2025-09-21 23:59:59
+
+Supervillain Lair: Dr. Wireless
+2025-06-30 00:00:00 - 2025-07-05 23:59:59
+
+Collection Event: The Secret Recipe
+2025-07-01 00:00:00 - 2025-07-07 23:59:59
+
+Lucky Pyramid: Country Livin’
+2025-07-05 00:00:00 - 2025-07-07 23:59:59
+
+Collection Event: The fiiinaaal! Wooohooooo!
+2025-07-10 00:00:00 - 2025-07-13 23:59:59
+
+Mole Hunt: Fire
+2025-07-12 00:00:00 - 2025-07-14 23:59:59
+
+Collection Event: The Solar Soapbox Derby
+2025-07-14 00:00:00 - 2025-07-21 23:59:59
+
+Mole Hunt: Retro Delights
+2025-07-19 00:00:00 - 2025-07-22 23:59:59
+
+Lucky Pyramid: Aliens
+2025-07-22 00:00:00 - 2025-07-24 23:59:59
+
+System Administrator Day
+2025-07-25 00:00:00 - 2025-07-25 23:59:59
+
+System Administrator Bonus Days
+2025-07-26 00:00:00 - 2025-07-28 23:59:59
+
+Collection Event: The International Hero Championships
+2025-07-30 00:00:00 - 2025-08-06 23:59:59
+
+
+HeroCons:
+
+2025-07-03 21:00:00 Modifications produced at your Hero Hideout
+2025-07-10 21:00:00 Attacks on villains
+2025-07-17 21:00:00 Missions completed
+2025-07-24 21:00:00 Special Missions Won
+
+
+Villains:
+
+2025-07-01 15:30:00 Nasty Burglar Duo
+2025-07-02 06:00:00 The Joker
+2025-07-02 19:45:00 Nasty Burglar Duo
+2025-07-03 20:00:00 The Joker
+2025-07-04 16:30:00 Boorish Rocker Rowdy
+2025-07-05 07:45:00 Nasty Burglar Duo
+2025-07-05 19:00:00 C3-D2
+2025-07-06 02:15:00 The Joker
+2025-07-06 16:15:00 Boorish Rocker Rowdy
+2025-07-07 02:15:00 General Bombman
+2025-07-08 00:30:00 The Joker
+2025-07-08 20:00:00 Pompous Salesman
+2025-07-09 04:00:00 C3-D2
+2025-07-09 18:15:00 Nasty Burglar Duo
+2025-07-10 05:30:00 The Joker
+2025-07-10 15:15:00 The Avenging Avenger
+2025-07-11 10:00:00 General Bombman
+2025-07-11 15:30:00 Boorish Rocker Rowdy
+2025-07-12 14:00:00 Ice Cold Real Estate Shark
+2025-07-12 20:00:00 Nasty Burglar Duo
+2025-07-13 06:30:00 C3-D2
+2025-07-13 20:00:00 The Avenging Avenger
+2025-07-14 07:00:00 Pompous Salesman
+2025-07-14 20:00:00 The Quantum Physicist
+2025-07-15 07:45:00 Ice Cold Real Estate Shark
+2025-07-15 16:45:00 Pompous Salesman
+2025-07-16 05:15:00 Nasty Burglar Duo
+2025-07-17 04:45:00 Boorish Rocker Rowdy
+2025-07-17 16:30:00 General Bombman
+2025-07-18 08:00:00 The Avenging Avenger
+2025-07-19 11:30:00 The Joker
+2025-07-20 00:30:00 Pompous Salesman
+2025-07-20 09:45:00 The Quantum Physicist
+2025-07-21 07:00:00 Nasty Burglar Duo
+2025-07-22 10:45:00 Ice Cold Real Estate Shark
+2025-07-23 05:15:00 General Bombman
+2025-07-24 04:00:00 The Joker
+2025-07-25 03:30:00 The Avenging Avenger
+2025-07-25 17:45:00 The Quantum Physicist
+2025-07-26 06:00:00 Nasty Burglar Duo
+2025-07-26 20:00:00 Pompous Salesman
+2025-07-27 05:00:00 The Joker
+2025-07-27 15:30:00 Ice Cold Real Estate Shark
+2025-07-28 17:45:00 The Joker
+2025-07-29 04:15:00 The Quantum Physicist
+2025-07-29 20:00:00 Boorish Rocker Rowdy
+2025-07-30 09:30:00 Pompous Salesman
+2025-07-30 16:15:00 The Avenging Avenger
+2025-07-31 03:15:00 Nasty Burglar Duo
+2025-07-31 10:45:00 The Quantum Physicist
+2025-07-31 15:30:00 Ice Cold Real Estate Shark
+
+        </div>
+        <div class="update-time" id="guildTime"></div>
+    </div>
+</div>
+<div id="players" class="container section">
+    <div class="card">
+        <h2>Players Info</h2>
+        <table id="playersTable">
+            <thead>
+                <tr>
+                    <th>Nickname</th>
+                    <th>Level</th>
+                    <th>Workshop Level</th>
+                    <th>Workshop Status</th>
+                    <th>Missed Fights</th>
+                    <th>Role</th>
+                    <th>Akce</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+        <form id="addPlayerForm">
+            <input type="text" id="nickname" placeholder="Nickname" required />
+            <input type="number" id="level" placeholder="Level" min="0" required />
+            <input type="number" id="workshop" placeholder="Workshop Level" min="0" />
+            <input type="number" id="missed" placeholder="Missed Fights" min="0" />
+            <select id="role">
+                <option value="">Člen</option>
+                <option value="velitel">Velitel</option>
+                <option value="důstojník">Důstojník</option>
+            </select>
+            <button type="submit">Přidat hráče</button>
+        </form>
+
+        <div class="limits">
+            <h3>Limity dílny podle levelu:</h3>
+            <ul>
+                <li>Lvl 500+ → Dílna 20</li>
+                <li>Lvl 450+ → Dílna 19</li>
+                <li>Lvl 400+ → Dílna 18</li>
+                <li>Lvl 350+ → Dílna 17</li>
+                <li>Lvl 325+ → Dílna 16</li>
+                <li>Lvl 300+ → Dílna 15</li>
+                <li>Lvl 275+ → Dílna 14</li>
+                <li>Lvl 250+ → Dílna 13</li>
+                <li>Lvl 230+ → Dílna 12</li>
+                <li>Lvl 210+ → Dílna 11</li>
+                <li>Lvl 190+ → Dílna 10</li>
+                <li>Lvl 170+ → Dílna 9</li>
+                <li>Lvl 150+ → Dílna 8</li>
+                <li>Lvl 100+ → Dílna 7</li>
+            </ul>
+        </div>
+
+        <div class="update-time" id="playersTime"></div>
+    </div>
+</div>
+.role-icon {
+    display: inline-block;
+    font-size: 1.2em;
+    margin-left: 5px;
+}
+.velitel {
+    color: gold;
+}
+.dustojnik {
+    color: cyan;
+}
+function getRoleIcon(role) {
+    if (role === "velitel") return '<span class="role-icon velitel">👑</span>';
+    if (role === "důstojník") return '<span class="role-icon dustojnik">🛡️</span>';
+    return '';
+}
+<div id="xp" class="container section">
+    <div class="card">
+        <h2>XP Tournament</h2>
+        <table id="xpTable">
+            <thead>
+                <tr>
+                    <th>Rank</th>
+                    <th>Name</th>
+                    <th>XP Gained</th>
+                    <th>Akce</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+
+        <form id="addXPForm">
+            <input type="number" id="xpRank" placeholder="Rank" min="1" required />
+            <input type="text" id="xpName" placeholder="Name" required />
+            <input type="number" id="xpGained" placeholder="XP Gained" min="0" required />
+            <button type="submit">Přidat hráče</button>
+        </form>
+
+        <div>
+            <canvas id="xpChart"></canvas>
+        </div>
+
+        <div class="update-time" id="xpTime"></div>
+    </div>
 </div>
 
-<div class="nav">
-    <button onclick="show('guild')">🏰 Guild Info</button>
-    <button onclick="show('players')">👥 Players Info</button>
-    <button onclick="show('xp')">📈 XP Tournament</button>
-    <button onclick="show('herocon')">⚔️ HeroCon Tournament</button>
-</div>
+canvas {
+    background-color: #2a2a3d;
+    border-radius: 10px;
+    padding: 10px;
+    box-shadow: 0 0 15px rgba(0,0,0,0.5);
+    margin-top: 20px;
+}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-<div id="content">
+const xpData = [];
+const xpTable = document.querySelector('#xpTable tbody');
+const xpChartCtx = document.getElementById('xpChart').getContext('2d');
 
-    <div id="guild" class="container section">
-        <div class="card">
-            <h2>Guild Info</h2>
-            <textarea id="guildInfo"></textarea>
-            <div class="update-time" id="guildTime"></div>
-        </div>
-    </div>
+const xpChart = new Chart(xpChartCtx, {
+    type: 'bar',
+    data: {
+        labels: [],
+        datasets: [{
+            label: 'XP Gained',
+            backgroundColor: '#00ffc8',
+            data: []
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: { display: false },
+            title: {
+                display: true,
+                text: 'XP Tournament Progress'
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: { color: '#f0f0f0' }
+            },
+            x: {
+                ticks: { color: '#f0f0f0' }
+            }
+        }
+    }
+});
 
-    <div id="players" class="container section">
-        <div class="card">
-            <h2>Players Info</h2>
-            <table id="playersTable">
-                <thead>
-                    <tr>
-                        <th>Nickname</th>
-                        <th>Level</th>
-                        <th>Workshop</th>
-                        <th>Workshop Status</th>
-                        <th>Vynechané boje</th>
-                    </tr>
-                </thead>
-                <tbody></tbody>
-            </table>
-            <div class="update-time" id="playersTime"></div>
-        </div>
-    </div>
+function updateXPTable() {
+    xpTable.innerHTML = '';
+    xpChart.data.labels = [];
+    xpChart.data.datasets[0].data = [];
 
-    <div id="xp" class="container section">
-        <div class="card">
-            <h2>XP Tournament</h2>
-            <table id="xpTable">
-                <thead>
-                    <tr>
-                        <th>Time</th>
-                        <th>Rank</th>
-                        <th>Name</th>
-                        <th>XP Gained</th>
-                    </tr>
-                </thead>
-                <tbody></tbody>
-            </table>
-            <div class="update-time" id="xpTime"></div>
-        </div>
-    </div>
+    xpData.sort((a, b) => a.rank - b.rank);
 
-    <div id="herocon" class="container section">
-        <div class="card">
-            <h2>HeroCon Tournament</h2>
-            <table id="heroconTable">
-                <thead>
-                    <tr>
-                        <th>Time</th>
-                        <th>Rank</th>
-                        <th>Name</th>
-                        <th>HeroCon Gained</th>
-                    </tr>
-                </thead>
-                <tbody></tbody>
-            </table>
-            <div class="update-time" id="heroconTime"></div>
-        </div>
-    </div>
+    xpData.forEach((item, index) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td contenteditable="true" data-field="rank">${item.rank}</td>
+            <td contenteditable="true" data-field="name">${item.name}</td>
+            <td contenteditable="true" data-field="xp">${item.xp}</td>
+            <td><button onclick="deleteXP(${index})">Smazat</button></td>
+        `;
+        tr.querySelectorAll('[contenteditable="true"]').forEach(cell => {
+            cell.addEventListener('input', () => {
+                const field = cell.dataset.field;
+                const value = field === 'rank' || field === 'xp' ? Number(cell.innerText) : cell.innerText;
+                item[field] = value;
+                updateXPTable();
+                saveXPData();
+            });
+        });
 
-</div>
+        xpTable.appendChild(tr);
 
-<script>
-const password = "TopBanditi1";
-if (localStorage.getItem("unlocked") !== "true") {
-    const input = prompt("Zadej heslo pro úpravu (jen pro editaci):");
-    if (input === password) {
-        localStorage.setItem("unlocked", "true");
-        alert("✅ Přístup povolen.");
-    } else {
-        alert("❌ Špatné heslo. Stránka je pouze pro čtení.");
+        xpChart.data.labels.push(item.name);
+        xpChart.data.datasets[0].data.push(item.xp);
+    });
+
+    xpChart.update();
+    document.getElementById('xpTime').innerText = 'Last updated: ' + new Date().toLocaleString();
+}
+
+function deleteXP(index) {
+    if (confirm(`Smazat hráče ${xpData[index].name}?`)) {
+        xpData.splice(index, 1);
+        updateXPTable();
+        saveXPData();
     }
 }
 
-function show(id) {
-    document.querySelectorAll('.section').forEach(s => s.style.display = 'none');
-    document.getElementById(id).style.display = 'flex';
-}
-show('players');
+document.getElementById('addXPForm').addEventListener('submit', e => {
+    e.preventDefault();
+    const rank = Number(document.getElementById('xpRank').value);
+    const name = document.getElementById('xpName').value.trim();
+    const xp = Number(document.getElementById('xpGained').value);
 
-function saveData(key, data) {
-    localStorage.setItem(key, JSON.stringify(data));
-    const time = new Date().toLocaleString();
-    localStorage.setItem(key + "_time", time);
-    document.getElementById(key + "Time").innerText = "Last updated: " + time;
-}
+    if (!name || isNaN(rank) || isNaN(xp)) {
+        alert('Vyplň všechny pole správně!');
+        return;
+    }
 
-function loadData(key) {
-    const time = localStorage.getItem(key + "_time");
-    if (time) document.getElementById(key + "Time").innerText = "Last updated: " + time;
-    return JSON.parse(localStorage.getItem(key)) || [];
-}
-
-// ==== Guild Info ====
-const guildTextarea = document.getElementById('guildInfo');
-guildTextarea.value = loadData('guild') || '';
-guildTextarea.addEventListener('input', () => saveData('guild', guildTextarea.value));
-
-// ==== Players ====
-const playersBody = document.querySelector('#playersTable tbody');
-const playersData = loadData('players') || [
-    ["⭐ Sazaro", 372, 17, "OK", 0],
-    ["🔰 Alfa", 482, 21, "OK", 0],
-    ["🔰 Liones", 359, 17, "OK", 0],
-    ["🔰 Bandita", 339, 16, "OK", 0],
-    ["🔰 Blesk", 331, 19, "OK", 0],
-    ["🔰 Ranny", 311, 17, "OK", 0],
-    ["🔰 Loniz1337", 301, 18, "OK", 0]
-];
-
-playersData.forEach(row => {
-    const tr = document.createElement('tr');
-    row.forEach(cell => {
-        const td = document.createElement('td');
-        td.contentEditable = localStorage.getItem("unlocked") === "true";
-        td.innerText = cell;
-        td.addEventListener('input', savePlayers);
-        tr.appendChild(td);
-    });
-    playersBody.appendChild(tr);
+    xpData.push({ rank, name, xp });
+    updateXPTable();
+    e.target.reset();
+    saveXPData();
 });
 
-function savePlayers() {
-    const rows = [...playersBody.querySelectorAll('tr')].map(r =>
-        [...r.querySelectorAll('td')].map(td => td.innerText)
-    );
-    saveData('players', rows);
+// Uložení a načtení z localStorage
+function saveXPData() {
+    localStorage.setItem('xpData', JSON.stringify(xpData));
+}
+function loadXPData() {
+    const data = JSON.parse(localStorage.getItem('xpData'));
+    if (data) {
+        xpData.push(...data);
+        updateXPTable();
+    }
 }
 
-// ==== XP ====
-const xpBody = document.querySelector('#xpTable tbody');
-const xpData = loadData('xp') || [
-    ["2025-07-01", "1", "Alfa", "1230"]
-];
-xpData.forEach(row => {
-    const tr = document.createElement('tr');
-    row.forEach(cell => {
-        const td = document.createElement('td');
-        td.contentEditable = localStorage.getItem("unlocked") === "true";
-        td.innerText = cell;
-        td.addEventListener('input', saveXP);
-        tr.appendChild(td);
-    });
-    xpBody.appendChild(tr);
-});
-
-function saveXP() {
-    const rows = [...xpBody.querySelectorAll('tr')].map(r =>
-        [...r.querySelectorAll('td')].map(td => td.innerText)
-    );
-    saveData('xp', rows);
-}
-
-// ==== HeroCon ====
-const heroBody = document.querySelector('#heroconTable tbody');
-const heroData = loadData('herocon') || [
-    ["2025-07-01", "1", "Alfa", "540"]
-];
-heroData.forEach(row => {
-    const tr = document.createElement('tr');
-    row.forEach(cell => {
-        const td = document.createElement('td');
-        td.contentEditable = localStorage.getItem("unlocked") === "true";
-        td.innerText = cell;
-        td.addEventListener('input', saveHeroCon);
-        tr.appendChild(td);
-    });
-    heroBody.appendChild(tr);
-});
-
-function saveHeroCon() {
-    const rows = [...heroBody.querySelectorAll('tr')].map(r =>
-        [...r.querySelectorAll('td')].map(td => td.innerText)
-    );
-    saveData('herocon', rows);
-}
-
-</script>
-
-</body>
-</html>
+loadXPData();
