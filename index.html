@@ -2,236 +2,331 @@
 <html lang="cs">
 <head>
 <meta charset="UTF-8">
-<title>Banditi - Team Stats</title>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Banditi Team Stats</title>
 <style>
-  body {
-    background-color: #1f1f2e;
+:root {
+    --main-bg: #1f1f2e;
+    --card-bg: #2a2a3d;
+    --header-bg: #34344a;
+    --accent: #00ffc8;
+    --hover-bg: #3a3a56;
+}
+
+body {
+    background-color: var(--main-bg);
     color: #f0f0f0;
     font-family: 'Segoe UI', sans-serif;
+    margin: 0;
     padding: 20px;
-  }
-  .header {
+}
+
+.header {
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 15px;
     margin-bottom: 20px;
-  }
-  .header img {
+}
+
+.header img {
     height: 60px;
-    user-select: none;
-  }
-  .header h1 {
-    color: #00ffc8;
+}
+
+.header h1 {
+    color: var(--accent);
     margin: 0;
     font-size: 2.2em;
-  }
-  .nav {
+}
+
+.nav {
     display: flex;
     justify-content: center;
     gap: 15px;
     margin-bottom: 25px;
-  }
-  .nav button {
-    background-color: #00ffc8;
-    color: #1f1f2e;
+    flex-wrap: wrap;
+}
+
+.nav button {
+    background-color: var(--accent);
+    color: var(--main-bg);
     border: none;
     padding: 8px 16px;
     border-radius: 8px;
     cursor: pointer;
     font-weight: bold;
-  }
-  .nav button:hover {
+    transition: 0.3s;
+}
+
+.nav button:hover {
     background-color: #00d1a8;
-  }
-  .section {
-    display: none;
-  }
-  .section.active {
-    display: block;
-  }
-  table {
+}
+
+.container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: center;
+}
+
+.card {
+    background-color: var(--card-bg);
+    padding: 15px;
+    border-radius: 10px;
+    box-shadow: 0 0 15px rgba(0,0,0,0.5);
+    min-width: 300px;
+    flex: 1;
+}
+
+h2 {
+    color: var(--accent);
+    margin-top: 0;
+}
+
+table {
     width: 100%;
     border-collapse: collapse;
-    background-color: #2a2a3d;
-    border-radius: 10px;
-    overflow: hidden;
-    box-shadow: 0 0 15px rgba(0,0,0,0.5);
-    margin-bottom: 30px;
-  }
-  th, td {
-    padding: 12px 18px;
+    margin-bottom: 10px;
+}
+
+th, td {
+    padding: 8px;
     text-align: center;
     border-bottom: 1px solid #3c3c50;
-  }
-  th {
-    background-color: #34344a;
-    color: #00ffc8;
-    font-weight: bold;
-  }
-  tr:nth-child(even) {
+}
+
+th {
+    background-color: var(--header-bg);
+    color: var(--accent);
+}
+
+tr:nth-child(even) {
     background-color: #262636;
-  }
-  tr:hover {
-    background-color: #3a3a56;
-  }
-  td[contenteditable="true"] {
+}
+
+tr:hover {
+    background-color: var(--hover-bg);
+}
+
+td[contenteditable="true"] {
+    background-color: var(--hover-bg);
     cursor: text;
-    background-color: #3a3a56;
-  }
+}
+
+textarea {
+    width: 100%;
+    min-height: 300px;
+    background-color: var(--hover-bg);
+    color: white;
+    border: none;
+    padding: 10px;
+    border-radius: 8px;
+}
+
+.update-time {
+    font-size: 0.9em;
+    color: #bbb;
+    text-align: right;
+}
 </style>
 </head>
+
 <body>
 
 <div class="header">
-  <img src="logo.png" alt="Logo">
-  <h1>Banditi - Team Stats</h1>
+    <img src="logo.png" alt="Logo">
+    <h1>Banditi Team Stats</h1>
 </div>
 
 <div class="nav">
-  <button onclick="showSection('guild')">🏰 Guild Info</button>
-  <button onclick="showSection('players')">👥 Players Info</button>
-  <button onclick="showSection('xp')">📈 XP Tournament</button>
-  <button onclick="showSection('herocon')">⚔️ HeroCon Tournament</button>
+    <button onclick="show('guild')">🏰 Guild Info</button>
+    <button onclick="show('players')">👥 Players Info</button>
+    <button onclick="show('xp')">📈 XP Tournament</button>
+    <button onclick="show('herocon')">⚔️ HeroCon Tournament</button>
 </div>
 
-<div id="guild" class="section">
-  <h2>Guild Info</h2>
-  <textarea rows="10" cols="100" placeholder="Sem piš informace o guildě..."></textarea>
-</div>
+<div id="content">
 
-<div id="players" class="section">
-  <h2>Players Info</h2>
-  <table>
-    <thead>
-      <tr>
-        <th>Nickname</th>
-        <th>Level</th>
-        <th>Workshop Level</th>
-        <th>Workshop Status</th>
-        <th>Vynechané boje</th>
-      </tr>
-    </thead>
-    <tbody id="playersBody">
-    </tbody>
-  </table>
-</div>
+    <div id="guild" class="container section">
+        <div class="card">
+            <h2>Guild Info</h2>
+            <textarea id="guildInfo"></textarea>
+            <div class="update-time" id="guildTime"></div>
+        </div>
+    </div>
 
-<div id="xp" class="section">
-  <h2>XP Tournament</h2>
-  <table>
-    <thead>
-      <tr>
-        <th>Rank</th>
-        <th>Name</th>
-        <th>XP Gained</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr><td>1</td><td>Alfa</td><td>1230</td></tr>
-      <tr><td>2</td><td>Sazaro</td><td>980</td></tr>
-      <tr><td>3</td><td>Bandita</td><td>840</td></tr>
-    </tbody>
-  </table>
-  <canvas id="xpChart"></canvas>
-</div>
+    <div id="players" class="container section">
+        <div class="card">
+            <h2>Players Info</h2>
+            <table id="playersTable">
+                <thead>
+                    <tr>
+                        <th>Nickname</th>
+                        <th>Level</th>
+                        <th>Workshop</th>
+                        <th>Workshop Status</th>
+                        <th>Vynechané boje</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+            <div class="update-time" id="playersTime"></div>
+        </div>
+    </div>
 
-<div id="herocon" class="section">
-  <h2>HeroCon Tournament</h2>
-  <table>
-    <thead>
-      <tr>
-        <th>Rank</th>
-        <th>Name</th>
-        <th>HeroCon Gained</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr><td>1</td><td>Alfa</td><td>540</td></tr>
-      <tr><td>2</td><td>Sazaro</td><td>480</td></tr>
-      <tr><td>3</td><td>Bandita</td><td>410</td></tr>
-    </tbody>
-  </table>
-  <canvas id="heroconChart"></canvas>
+    <div id="xp" class="container section">
+        <div class="card">
+            <h2>XP Tournament</h2>
+            <table id="xpTable">
+                <thead>
+                    <tr>
+                        <th>Time</th>
+                        <th>Rank</th>
+                        <th>Name</th>
+                        <th>XP Gained</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+            <div class="update-time" id="xpTime"></div>
+        </div>
+    </div>
+
+    <div id="herocon" class="container section">
+        <div class="card">
+            <h2>HeroCon Tournament</h2>
+            <table id="heroconTable">
+                <thead>
+                    <tr>
+                        <th>Time</th>
+                        <th>Rank</th>
+                        <th>Name</th>
+                        <th>HeroCon Gained</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+            <div class="update-time" id="heroconTime"></div>
+        </div>
+    </div>
+
 </div>
 
 <script>
 const password = "TopBanditi1";
-
 if (localStorage.getItem("unlocked") !== "true") {
-  const input = prompt("Zadej heslo pro úpravu:");
-  if (input === password) {
-    localStorage.setItem("unlocked", "true");
-    alert("✅ Přístup povolen.");
-  } else {
-    alert("❌ Špatné heslo.");
-    document.querySelectorAll('[contenteditable], button, textarea').forEach(e => e.remove());
-  }
+    const input = prompt("Zadej heslo pro úpravu (jen pro editaci):");
+    if (input === password) {
+        localStorage.setItem("unlocked", "true");
+        alert("✅ Přístup povolen.");
+    } else {
+        alert("❌ Špatné heslo. Stránka je pouze pro čtení.");
+    }
 }
 
-function showSection(id) {
-  document.querySelectorAll('.section').forEach(sec => sec.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
+function show(id) {
+    document.querySelectorAll('.section').forEach(s => s.style.display = 'none');
+    document.getElementById(id).style.display = 'flex';
 }
-window.onload = () => showSection('players');
+show('players');
 
-const players = [
-  {name: "Sazaro", level: 372, workshop: 17, missed: 0},
-  {name: "Alfa", level: 482, workshop: 21, missed: 0},
-  {name: "Liones", level: 359, workshop: 17, missed: 0},
-  {name: "Bandita", level: 339, workshop: 16, missed: 0},
-  {name: "Blesk", level: 331, workshop: 19, missed: 0},
-  {name: "Ranny", level: 311, workshop: 17, missed: 0},
-  {name: "Loniz1337", level: 301, workshop: 18, missed: 0}
+function saveData(key, data) {
+    localStorage.setItem(key, JSON.stringify(data));
+    const time = new Date().toLocaleString();
+    localStorage.setItem(key + "_time", time);
+    document.getElementById(key + "Time").innerText = "Last updated: " + time;
+}
+
+function loadData(key) {
+    const time = localStorage.getItem(key + "_time");
+    if (time) document.getElementById(key + "Time").innerText = "Last updated: " + time;
+    return JSON.parse(localStorage.getItem(key)) || [];
+}
+
+// ==== Guild Info ====
+const guildTextarea = document.getElementById('guildInfo');
+guildTextarea.value = loadData('guild') || '';
+guildTextarea.addEventListener('input', () => saveData('guild', guildTextarea.value));
+
+// ==== Players ====
+const playersBody = document.querySelector('#playersTable tbody');
+const playersData = loadData('players') || [
+    ["⭐ Sazaro", 372, 17, "OK", 0],
+    ["🔰 Alfa", 482, 21, "OK", 0],
+    ["🔰 Liones", 359, 17, "OK", 0],
+    ["🔰 Bandita", 339, 16, "OK", 0],
+    ["🔰 Blesk", 331, 19, "OK", 0],
+    ["🔰 Ranny", 311, 17, "OK", 0],
+    ["🔰 Loniz1337", 301, 18, "OK", 0]
 ];
 
-function getRoleIcon(nickname) {
-  if (nickname === 'Sazaro') return '⭐ ';
-  if (['Alfa', 'Liones', 'Bandita', 'Blesk', 'Ranny', 'Loniz1337'].includes(nickname)) return '🔰 ';
-  return '';
+playersData.forEach(row => {
+    const tr = document.createElement('tr');
+    row.forEach(cell => {
+        const td = document.createElement('td');
+        td.contentEditable = localStorage.getItem("unlocked") === "true";
+        td.innerText = cell;
+        td.addEventListener('input', savePlayers);
+        tr.appendChild(td);
+    });
+    playersBody.appendChild(tr);
+});
+
+function savePlayers() {
+    const rows = [...playersBody.querySelectorAll('tr')].map(r =>
+        [...r.querySelectorAll('td')].map(td => td.innerText)
+    );
+    saveData('players', rows);
 }
 
-const tbody = document.getElementById('playersBody');
-players.forEach(p => {
-  const row = document.createElement('tr');
-  row.innerHTML = `
-    <td contenteditable="true">${getRoleIcon(p.name) + p.name}</td>
-    <td contenteditable="true">${p.level}</td>
-    <td contenteditable="true">${p.workshop}</td>
-    <td contenteditable="true">OK</td>
-    <td contenteditable="true">${p.missed}</td>
-  `;
-  tbody.appendChild(row);
+// ==== XP ====
+const xpBody = document.querySelector('#xpTable tbody');
+const xpData = loadData('xp') || [
+    ["2025-07-01", "1", "Alfa", "1230"]
+];
+xpData.forEach(row => {
+    const tr = document.createElement('tr');
+    row.forEach(cell => {
+        const td = document.createElement('td');
+        td.contentEditable = localStorage.getItem("unlocked") === "true";
+        td.innerText = cell;
+        td.addEventListener('input', saveXP);
+        tr.appendChild(td);
+    });
+    xpBody.appendChild(tr);
 });
 
-// XP Chart
-new Chart(document.getElementById('xpChart'), {
-  type: 'bar',
-  data: {
-    labels: ['Alfa', 'Sazaro', 'Bandita'],
-    datasets: [{
-      label: 'XP Gained',
-      data: [1230, 980, 840],
-      backgroundColor: '#00ffc8'
-    }]
-  },
-  options: {scales: {y: {beginAtZero: true}}}
+function saveXP() {
+    const rows = [...xpBody.querySelectorAll('tr')].map(r =>
+        [...r.querySelectorAll('td')].map(td => td.innerText)
+    );
+    saveData('xp', rows);
+}
+
+// ==== HeroCon ====
+const heroBody = document.querySelector('#heroconTable tbody');
+const heroData = loadData('herocon') || [
+    ["2025-07-01", "1", "Alfa", "540"]
+];
+heroData.forEach(row => {
+    const tr = document.createElement('tr');
+    row.forEach(cell => {
+        const td = document.createElement('td');
+        td.contentEditable = localStorage.getItem("unlocked") === "true";
+        td.innerText = cell;
+        td.addEventListener('input', saveHeroCon);
+        tr.appendChild(td);
+    });
+    heroBody.appendChild(tr);
 });
 
-// HeroCon Chart
-new Chart(document.getElementById('heroconChart'), {
-  type: 'bar',
-  data: {
-    labels: ['Alfa', 'Sazaro', 'Bandita'],
-    datasets: [{
-      label: 'HeroCon Gained',
-      data: [540, 480, 410],
-      backgroundColor: '#00ffc8'
-    }]
-  },
-  options: {scales: {y: {beginAtZero: true}}}
-});
+function saveHeroCon() {
+    const rows = [...heroBody.querySelectorAll('tr')].map(r =>
+        [...r.querySelectorAll('td')].map(td => td.innerText)
+    );
+    saveData('herocon', rows);
+}
+
 </script>
 
 </body>
