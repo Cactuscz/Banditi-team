@@ -171,6 +171,27 @@
     width: 100% !important;
     height: 400px !important;
   }
+  #playersTable {
+  table-layout: auto !important;
+  width: 100% !important;
+  }
+  #playersTable td, #playersTable th {
+  text-align: center !important;
+  vertical-align: middle;
+  }
+  #playersTable td.role-icon, #playersTable td.role-select {
+  text-align: center !important;
+  width: 60px;
+  font-size: 1.3em;
+  }
+  #playersTable td.info-icon {
+  cursor: pointer;
+  color: #00ffc8;
+  font-weight: bold;
+  font-size: 1.2em;
+  user-select: none;
+  }
+
 </style>
 </head>
 <body>
@@ -333,6 +354,11 @@ Casino with high quality rewards
   }
 
   function enableEditing() {
+    document.querySelectorAll('select.role-select').forEach(sel => sel.disabled = false);
+    document.querySelectorAll('button.delete-btn').forEach(btn => btn.disabled = false);
+
+
+    
     // Guild info textarea
     document.getElementById('guildInfo').readOnly = false;
 
@@ -385,63 +411,97 @@ Casino with high quality rewards
     const tbody = document.getElementById('playersBody');
     tbody.innerHTML = '';
     initialPlayers.forEach(p => {
-      const tr = document.createElement('tr');
-      // Role icon
-      let tdRoleIcon = document.createElement('td');
-      tdRoleIcon.className = 'role-icon';
-      tdRoleIcon.textContent = roleIcon(p.role);
-      tr.appendChild(tdRoleIcon);
+    const tr = document.createElement('tr');
 
-      // Name
-      let tdName = document.createElement('td');
-      tdName.textContent = p.name;
-      tdName.contentEditable = false;
-      tr.appendChild(tdName);
+    // Role select - před jménem
+    let tdRoleSelect = document.createElement('td');
+    let select = document.createElement('select');
+    select.className = 'role-select';
+    select.disabled = !editMode;
+    ['leader', 'officer', 'member'].forEach(r => {
+      let opt = document.createElement('option');
+      opt.value = r;
+      opt.text = r.charAt(0).toUpperCase() + r.slice(1) + ' ' + roleIcon(r);
+      if (r === p.role) opt.selected = true;
+      select.appendChild(opt);
+    });
+    select.onchange = function () {
+      // při změně role aktualizuj ikonku role
+      tdRoleIcon.textContent = roleIcon(this.value);
+    };
+    tdRoleSelect.appendChild(select);
+    tr.appendChild(tdRoleSelect);
 
-      // Level
-      let tdLevel = document.createElement('td');
-      tdLevel.textContent = p.level;
-      tdLevel.contentEditable = false;
-      tr.appendChild(tdLevel);
+    // Role ikona (jen zobrazení)
+    let tdRoleIcon = document.createElement('td');
+    tdRoleIcon.className = 'role-icon';
+    tdRoleIcon.textContent = roleIcon(p.role);
+    tr.appendChild(tdRoleIcon);
 
-      // Workshop Level
-      let tdWorkshop = document.createElement('td');
-      tdWorkshop.textContent = p.workshop;
-      tdWorkshop.contentEditable = false;
-      tr.appendChild(tdWorkshop);
+    // Jméno hráče + ikona info
+    let tdName = document.createElement('td');
+    tdName.textContent = p.name;
+    tdName.contentEditable = false;
 
-      // Workshop Status - vypočítáme podle limitu
-      let tdWorkshopStatus = document.createElement('td');
-      tdWorkshopStatus.className = 'workshop-status';
-      tdWorkshopStatus.textContent = calculateWorkshopStatus(p.level, p.workshop);
-      tr.appendChild(tdWorkshopStatus);
+    // Ikona info vedle jména
+    let infoIcon = document.createElement('span');
+    infoIcon.className = 'info-icon';
+    infoIcon.textContent = 'ℹ️';
+    infoIcon.title = 'Zobrazit / upravit info hráče';
+    infoIcon.onclick = () => openInfoModal(tdInfo, tdName);
+    tdName.appendChild(document.createTextNode(' ')); // mezera mezi jménem a ikonou
+    tdName.appendChild(infoIcon);
 
-      // Missed fights
-      let tdMissed = document.createElement('td');
-      tdMissed.textContent = p.missed;
-      tdMissed.contentEditable = false;
-      tr.appendChild(tdMissed);
+    tr.appendChild(tdName);
 
-      // Info
-      let tdInfo = document.createElement('td');
-      tdInfo.textContent = p.info;
-      tdInfo.contentEditable = false;
-      tr.appendChild(tdInfo);
+    // Level
+    let tdLevel = document.createElement('td');
+    tdLevel.textContent = p.level;
+    tdLevel.contentEditable = false;
+    tr.appendChild(tdLevel);
 
-      // Delete btn
-      let tdDelete = document.createElement('td');
-      let btnDelete = document.createElement('button');
-      btnDelete.textContent = 'Smazat';
-      btnDelete.disabled = true;
-      btnDelete.className = 'delete-btn';
-      btnDelete.onclick = () => {
-        if(!editMode) return alert('Nejdříve povol úpravy');
-        if(confirm(`Opravdu smazat hráče ${p.name}?`)) {
-          tr.remove();
-        }
+    // Workshop Level
+    let tdWorkshop = document.createElement('td');
+    tdWorkshop.textContent = p.workshop;
+    tdWorkshop.contentEditable = false;
+    tr.appendChild(tdWorkshop);
+
+    // Workshop Status
+    let tdWorkshopStatus = document.createElement('td');
+    tdWorkshopStatus.className = 'workshop-status';
+    tdWorkshopStatus.textContent = calculateWorkshopStatus(p.level, p.workshop);
+    tr.appendChild(tdWorkshopStatus);
+
+    // Missed fights
+    let tdMissed = document.createElement('td');
+    tdMissed.textContent = p.missed;
+    tdMissed.contentEditable = false;
+    tr.appendChild(tdMissed);
+
+    // Info (skryté, pro modál)
+    let tdInfo = document.createElement('td');
+    tdInfo.textContent = p.info;
+    tdInfo.style.display = 'none';
+    tr.appendChild(tdInfo);
+
+    // Delete button
+    let tdDelete = document.createElement('td');
+    let btnDelete = document.createElement('button');
+    btnDelete.textContent = 'Smazat';
+    btnDelete.disabled = !editMode;
+    btnDelete.className = 'delete-btn';
+    btnDelete.onclick = () => {
+      if (!editMode) return alert('Nejdříve povol úpravy');
+      if (confirm(`Opravdu smazat hráče ${p.name}?`)) {
+        tr.remove();
       }
-      tdDelete.appendChild(btnDelete);
-      tr.appendChild(tdDelete);
+    };
+    tdDelete.appendChild(btnDelete);
+    tr.appendChild(tdDelete);
+
+    tbody.appendChild(tr);
+  });
+
 
       // Role select pro úpravu role
       let tdRoleSelect = document.createElement('td');
@@ -502,74 +562,87 @@ Casino with high quality rewards
     const tbody = document.getElementById(tbodyId);
     const tr = document.createElement('tr');
     
-    if(tbodyId === 'playersBody') {
-      // Role icon
-      let tdRoleIcon = document.createElement('td');
-      tdRoleIcon.className = 'role-icon';
-      tdRoleIcon.textContent = '👤';
-      tr.appendChild(tdRoleIcon);
+  if(tbodyId === 'playersBody') {
+    // Role select
+    let tdRoleSelect = document.createElement('td');
+    let select = document.createElement('select');
+    select.className = 'role-select';
+    select.disabled = !editMode;
+    ['leader', 'officer', 'member'].forEach(r => {
+      let opt = document.createElement('option');
+      opt.value = r;
+      opt.text = r.charAt(0).toUpperCase() + r.slice(1) + ' ' + roleIcon(r);
+      if(r === 'member') opt.selected = true;
+      select.appendChild(opt);
+  });
+  tdRoleSelect.appendChild(select);
+  tr.appendChild(tdRoleSelect);
 
-      // Role select
-      let tdRoleSelect = document.createElement('td');
-      let select = document.createElement('select');
-      select.className = 'role-select';
-      ['leader', 'officer', 'member'].forEach(r => {
-        let opt = document.createElement('option');
-        opt.value = r;
-        opt.text = r.charAt(0).toUpperCase() + r.slice(1) + ' ' + roleIcon(r);
-        if(r==='member') opt.selected = true;
-        select.appendChild(opt);
-      });
-      select.onchange = function() {
-        tdRoleIcon.textContent = roleIcon(this.value);
-      };
-      tdRoleSelect.appendChild(select);
-      tr.appendChild(tdRoleSelect);
+  // Role icon
+  let tdRoleIcon = document.createElement('td');
+  tdRoleIcon.className = 'role-icon';
+  tdRoleIcon.textContent = roleIcon('member');
+  tr.appendChild(tdRoleIcon);
 
-      // Name
-      let tdName = document.createElement('td');
-      tdName.contentEditable = "true";
-      tr.appendChild(tdName);
+  select.onchange = function() {
+    tdRoleIcon.textContent = roleIcon(this.value);
+  };
 
-      // Level
-      let tdLevel = document.createElement('td');
-      tdLevel.contentEditable = "true";
-      tr.appendChild(tdLevel);
+  // Name + info icon
+  let tdName = document.createElement('td');
+  tdName.contentEditable = editMode ? "true" : "false";
 
-      // Workshop Level
-      let tdWorkshop = document.createElement('td');
-      tdWorkshop.contentEditable = "true";
-      tr.appendChild(tdWorkshop);
+  let infoIcon = document.createElement('span');
+  infoIcon.className = 'info-icon';
+  infoIcon.textContent = 'ℹ️';
+  infoIcon.title = 'Zobrazit / upravit info hráče';
+  infoIcon.onclick = () => openInfoModal(tdInfo, tdName);
+  tdName.appendChild(document.createTextNode(''));
+  tdName.appendChild(infoIcon);
+  tr.appendChild(tdName);
 
-      // Workshop status (vypočítáme při uložení)
-      let tdWorkshopStatus = document.createElement('td');
-      tdWorkshopStatus.className = 'workshop-status';
-      tdWorkshopStatus.textContent = '-';
-      tr.appendChild(tdWorkshopStatus);
+  // Level
+  let tdLevel = document.createElement('td');
+  tdLevel.contentEditable = editMode ? "true" : "false";
+  tr.appendChild(tdLevel);
 
-      // Missed fights
-      let tdMissed = document.createElement('td');
-      tdMissed.contentEditable = "true";
-      tr.appendChild(tdMissed);
+  // Workshop Level
+  let tdWorkshop = document.createElement('td');
+  tdWorkshop.contentEditable = editMode ? "true" : "false";
+  tr.appendChild(tdWorkshop);
 
-      // Info
-      let tdInfo = document.createElement('td');
-      tdInfo.contentEditable = "true";
-      tr.appendChild(tdInfo);
+  // Workshop Status
+  let tdWorkshopStatus = document.createElement('td');
+  tdWorkshopStatus.className = 'workshop-status';
+  tdWorkshopStatus.textContent = '-';
+  tr.appendChild(tdWorkshopStatus);
 
-      // Delete btn
-      let tdDelete = document.createElement('td');
-      let btnDelete = document.createElement('button');
-      btnDelete.textContent = 'Smazat';
-      btnDelete.className = 'delete-btn';
-      btnDelete.onclick = () => {
-        if(!editMode) return alert('Nejdříve povol úpravy');
-        if(confirm('Opravdu smazat tento řádek?')) {
-          tr.remove();
-        }
-      };
-      tdDelete.appendChild(btnDelete);
-      tr.appendChild(tdDelete);
+  // Missed fights
+  let tdMissed = document.createElement('td');
+  tdMissed.contentEditable = editMode ? "true" : "false";
+  tr.appendChild(tdMissed);
+
+  // Info skryté
+  let tdInfo = document.createElement('td');
+  tdInfo.style.display = 'none';
+  tr.appendChild(tdInfo);
+
+  // Delete button
+  let tdDelete = document.createElement('td');
+  let btnDelete = document.createElement('button');
+  btnDelete.textContent = 'Smazat';
+  btnDelete.disabled = !editMode;
+  btnDelete.className = 'delete-btn';
+  btnDelete.onclick = () => {
+    if(!editMode) return alert('Nejdříve povol úpravy');
+    if(confirm('Opravdu smazat tento řádek?')) {
+      tr.remove();
+    }
+  };
+  tdDelete.appendChild(btnDelete);
+  tr.appendChild(tdDelete);
+}
+
 
     } else if(tbodyId === 'xpBody' || tbodyId === 'heroconBody') {
       // Pro turnaje
@@ -664,6 +737,35 @@ Casino with high quality rewards
     heroconChart = createHeroConChart();
   }
 
+  function openInfoModal(tdInfoCell, tdNameCell) {
+    if (!editMode) return alert('Nejdříve povol úpravy.');
+
+    const modal = document.getElementById('infoModal');
+    const overlay = document.getElementById('modalOverlay');
+    const textarea = document.getElementById('infoText');
+
+    textarea.value = tdInfoCell.textContent;
+
+    modal.style.display = 'block';
+    overlay.style.display = 'block';
+
+    // uložíme do modálního okna reference pro update
+    modal.currentInfoCell = tdInfoCell;
+    modal.currentNameCell = tdNameCell;
+  }
+
+  function closeModal(cancel = false) {
+    const modal = document.getElementById('infoModal');
+    const overlay = document.getElementById('modalOverlay');
+    if (!cancel) {
+      // uložit změny do skrytého td info
+      modal.currentInfoCell.textContent = document.getElementById('infoText').value;
+    }
+    modal.style.display = 'none';
+    overlay.style.display = 'none';
+  }
+
+  
   // --- PDF export ---
   async function saveTableToPDF(tableId, title) {
     const { jsPDF } = window.jspdf;
@@ -715,8 +817,23 @@ Casino with high quality rewards
 
 </script>
 
+  
+  
 <!-- Add jsPDF autotable plugin (needed for tables in PDF) -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
 
+<!-- Modal pro info hráče -->
+<div id="infoModal" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%);
+  background:#2a2a3d; border:2px solid #00ffc8; padding:20px; border-radius:10px; z-index:1000; width:300px;">
+  <h3>Info o hráči</h3>
+  <textarea id="infoText" style="width:100%; height:120px; background:#1f1f2e; color:#00ffc8; border:none; resize:none;"></textarea>
+  <div style="margin-top:10px; text-align:right;">
+    <button onclick="closeModal()" style="background:#00ffc8; border:none; padding:5px 10px; cursor:pointer; border-radius:6px;">Uložit</button>
+    <button onclick="closeModal(true)" style="background:#ff5050; border:none; padding:5px 10px; cursor:pointer; border-radius:6px; margin-left:5px;">Zrušit</button>
+  </div>
+</div>
+<div id="modalOverlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%;
+  background:rgba(0,0,0,0.5); z-index:999;"></div>
+  
 </body>
 </html>
