@@ -404,7 +404,6 @@
         const val = parseInt(tdLevel.textContent) || 0;
         p.level = val;
         savePlayersData();
-        renderPlayers();
       };
       tr.appendChild(tdLevel);
 
@@ -416,7 +415,6 @@
         const val = parseInt(tdWorkshop.textContent) || 0;
         p.workshop = val;
         savePlayersData();
-        renderPlayers();
       };
       tr.appendChild(tdWorkshop);
 
