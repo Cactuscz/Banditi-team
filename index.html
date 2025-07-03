@@ -60,10 +60,12 @@
     overflow: hidden;
     box-shadow: 0 0 15px rgba(0,0,0,0.5);
     margin-bottom: 10px;
+    table-layout: auto !important;
   }
   th, td {
     padding: 8px 12px;
-    text-align: center;
+    text-align: center !important;
+    vertical-align: middle;
     border-bottom: 1px solid #3c3c50;
   }
   th {
@@ -171,27 +173,18 @@
     width: 100% !important;
     height: 400px !important;
   }
-  #playersTable {
-  table-layout: auto !important;
-  width: 100% !important;
+  td.role-icon, td.role-select {
+    width: 60px;
+    font-size: 1.3em;
   }
-  #playersTable td, #playersTable th {
-  text-align: center !important;
-  vertical-align: middle;
+  td.info-icon {
+    cursor: pointer;
+    color: #00ffc8;
+    font-weight: bold;
+    font-size: 1.2em;
+    user-select: none;
+    margin-left: 5px;
   }
-  #playersTable td.role-icon, #playersTable td.role-select {
-  text-align: center !important;
-  width: 60px;
-  font-size: 1.3em;
-  }
-  #playersTable td.info-icon {
-  cursor: pointer;
-  color: #00ffc8;
-  font-weight: bold;
-  font-size: 1.2em;
-  user-select: none;
-  }
-
 </style>
 </head>
 <body>
@@ -249,6 +242,7 @@ Casino with high quality rewards
     <thead>
       <tr>
         <th>Role</th>
+        <th>Icon</th>
         <th>Nickname</th>
         <th>Level</th>
         <th>Workshop Level</th>
@@ -266,561 +260,72 @@ Casino with high quality rewards
 <div id="xp" class="section">
   <h2>XP Tournament <span class="edit-icon" onclick="requestEditAccess()">✏️</span></h2>
   
-  <button class="update-btn" onclick="updateTournament('xp')">🔄 Aktualizovat</button>
-  <button class="add-player" onclick="addPlayerRow('xpBody')">➕ Add Player</button>
+  <button class="update-btn" onclick="saveXp()">Uložit XP</button>
   
-  <div class="tables-container">
-    <div class="table-wrapper">
-      <div class="update-info">Last updated: <span id="xpUpdateDate"></span></div>
-      <table id="xpTable">
-        <thead>
-          <tr>
-            <th>Rank</th>
-            <th>Name</th>
-            <th>XP Gained</th>
-          </tr>
-        </thead>
-        <tbody id="xpBody">
-          <tr><td contenteditable="true">1</td><td contenteditable="true">Alfa</td><td contenteditable="true">1230</td></tr>
-          <tr><td contenteditable="true">2</td><td contenteditable="true">Sazaro</td><td contenteditable="true">980</td></tr>
-          <tr><td contenteditable="true">3</td><td contenteditable="true">Bandita</td><td contenteditable="true">840</td></tr>
-        </tbody>
-      </table>
-      <button class="save-pdf-btn" onclick="saveTableToPDF('xpTable', 'XP Tournament')">💾 Uložit XP Tournament do PDF</button>
-    </div>
-    <div class="chart-wrapper">
-      <canvas id="xpChart"></canvas>
-    </div>
+  <table id="xpTable">
+    <thead>
+      <tr>
+        <th>Nickname</th>
+        <th>XP 1</th>
+        <th>XP 2</th>
+        <th>XP 3</th>
+        <th>XP 4</th>
+        <th>XP 5</th>
+        <th>XP 6</th>
+        <th>XP 7</th>
+        <th>XP 8</th>
+        <th>XP 9</th>
+        <th>XP 10</th>
+        <th>XP 11</th>
+        <th>XP 12</th>
+        <th>XP 13</th>
+        <th>XP 14</th>
+        <th>XP 15</th>
+        <th>XP 16</th>
+        <th>XP 17</th>
+        <th>XP 18</th>
+        <th>XP 19</th>
+        <th>XP 20</th>
+        <th>Total XP</th>
+      </tr>
+    </thead>
+    <tbody id="xpBody"></tbody>
+  </table>
+  
+  <div class="chart-wrapper">
+    <canvas id="xpChart"></canvas>
   </div>
 </div>
 
 <div id="herocon" class="section">
   <h2>HeroCon Tournament <span class="edit-icon" onclick="requestEditAccess()">✏️</span></h2>
   
-  <button class="update-btn" onclick="updateTournament('herocon')">🔄 Aktualizovat</button>
-  <button class="add-player" onclick="addPlayerRow('heroconBody')">➕ Add Player</button>
+  <button class="update-btn" onclick="saveHeroCon()">Uložit HeroCon</button>
   
-  <div class="tables-container">
-    <div class="table-wrapper">
-      <div class="update-info">Last updated: <span id="heroconUpdateDate"></span></div>
-      <table id="heroconTable">
-        <thead>
-          <tr>
-            <th>Rank</th>
-            <th>Name</th>
-            <th>HeroCon Gained</th>
-          </tr>
-        </thead>
-        <tbody id="heroconBody">
-          <tr><td contenteditable="true">1</td><td contenteditable="true">Alfa</td><td contenteditable="true">540</td></tr>
-          <tr><td contenteditable="true">2</td><td contenteditable="true">Sazaro</td><td contenteditable="true">480</td></tr>
-          <tr><td contenteditable="true">3</td><td contenteditable="true">Bandita</td><td contenteditable="true">300</td></tr>
-        </tbody>
-      </table>
-      <button class="save-pdf-btn" onclick="saveTableToPDF('heroconTable', 'HeroCon Tournament')">💾 Uložit HeroCon Tournament do PDF</button>
-    </div>
-    <div class="chart-wrapper">
-      <canvas id="heroconChart"></canvas>
-    </div>
+  <table id="heroconTable">
+    <thead>
+      <tr>
+        <th>Nickname</th>
+        <th>HC 1</th>
+        <th>HC 2</th>
+        <th>HC 3</th>
+        <th>HC 4</th>
+        <th>HC 5</th>
+        <th>HC 6</th>
+        <th>HC 7</th>
+        <th>HC 8</th>
+        <th>HC 9</th>
+        <th>HC 10</th>
+        <th>Total HC</th>
+      </tr>
+    </thead>
+    <tbody id="heroconBody"></tbody>
+  </table>
+  
+  <div class="chart-wrapper">
+    <canvas id="heroconChart"></canvas>
   </div>
 </div>
-
-<script>
-  // --- Global ---
-  let editMode = false;
-  const PASSWORD = "TopBanditi1";
-
-  function showSection(id) {
-    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-    document.getElementById(id).classList.add('active');
-  }
-  // default view
-  showSection('guild');
-
-  // --- Edit Access ---
-  function requestEditAccess() {
-    if (editMode) {
-      alert("Úpravy již povoleny.");
-      return;
-    }
-    let pwd = prompt("Zadej heslo pro úpravy:");
-    if (pwd === PASSWORD) {
-      editMode = true;
-      enableEditing();
-      alert("Úpravy povoleny. Nyní můžete měnit data.");
-    } else {
-      alert("Špatné heslo.");
-    }
-  }
-
-  function enableEditing() {
-    document.querySelectorAll('select.role-select').forEach(sel => sel.disabled = false);
-    document.querySelectorAll('button.delete-btn').forEach(btn => btn.disabled = false);
-
-
-    
-    // Guild info textarea
-    document.getElementById('guildInfo').readOnly = false;
-
-    // Players Table edit
-    const playersBody = document.getElementById('playersBody');
-    playersBody.querySelectorAll('tr').forEach(row => {
-      row.querySelectorAll('td').forEach((td, i) => {
-        // Except Role icon cell (index 0)
-        if(i !== 0 && i !== 7) td.contentEditable = "true";
-      });
-      // Enable select and delete btn
-      const select = row.querySelector('select.role-select');
-      if(select) select.disabled = false;
-      const delBtn = row.querySelector('button.delete-btn');
-      if(delBtn) delBtn.disabled = false;
-    });
-
-    // XP and HeroCon tables
-    ['xpBody', 'heroconBody'].forEach(id => {
-      const tbody = document.getElementById(id);
-      tbody.querySelectorAll('tr').forEach(tr => {
-        tr.querySelectorAll('td').forEach(td => td.contentEditable = "true");
-      });
-    });
-
-    // Enable selects in players table for roles
-    document.querySelectorAll('select.role-select').forEach(sel => sel.disabled = false);
-    
-    // Enable delete buttons
-    document.querySelectorAll('button.delete-btn').forEach(btn => btn.disabled = false);
-  }
-
-  // --- Players Table handling ---
-  const initialPlayers = [
-    {role:'leader', name:'Alfa', level:'198', workshop:'28', missed:'0', info:'Velitel týmu'},
-    {role:'officer', name:'Sazaro', level:'150', workshop:'20', missed:'1', info:'Důstojník'},
-    {role:'member', name:'Bandita', level:'180', workshop:'25', missed:'2', info:'Člen týmu'},
-  ];
-
-  function roleIcon(role) {
-    switch(role) {
-      case 'leader': return '👑';
-      case 'officer': return '🛡️';
-      case 'member': return '👤';
-      default: return '';
-    }
-  }
-
-  function renderPlayers() {
-    const tbody = document.getElementById('playersBody');
-    tbody.innerHTML = '';
-    initialPlayers.forEach(p => {
-    const tr = document.createElement('tr');
-
-    // Role select - před jménem
-    let tdRoleSelect = document.createElement('td');
-    let select = document.createElement('select');
-    select.className = 'role-select';
-    select.disabled = !editMode;
-    ['leader', 'officer', 'member'].forEach(r => {
-      let opt = document.createElement('option');
-      opt.value = r;
-      opt.text = r.charAt(0).toUpperCase() + r.slice(1) + ' ' + roleIcon(r);
-      if (r === p.role) opt.selected = true;
-      select.appendChild(opt);
-    });
-    select.onchange = function () {
-      // při změně role aktualizuj ikonku role
-      tdRoleIcon.textContent = roleIcon(this.value);
-    };
-    tdRoleSelect.appendChild(select);
-    tr.appendChild(tdRoleSelect);
-
-    // Role ikona (jen zobrazení)
-    let tdRoleIcon = document.createElement('td');
-    tdRoleIcon.className = 'role-icon';
-    tdRoleIcon.textContent = roleIcon(p.role);
-    tr.appendChild(tdRoleIcon);
-
-    // Jméno hráče + ikona info
-    let tdName = document.createElement('td');
-    tdName.textContent = p.name;
-    tdName.contentEditable = false;
-
-    // Ikona info vedle jména
-    let infoIcon = document.createElement('span');
-    infoIcon.className = 'info-icon';
-    infoIcon.textContent = 'ℹ️';
-    infoIcon.title = 'Zobrazit / upravit info hráče';
-    infoIcon.onclick = () => openInfoModal(tdInfo, tdName);
-    tdName.appendChild(document.createTextNode(' ')); // mezera mezi jménem a ikonou
-    tdName.appendChild(infoIcon);
-
-    tr.appendChild(tdName);
-
-    // Level
-    let tdLevel = document.createElement('td');
-    tdLevel.textContent = p.level;
-    tdLevel.contentEditable = false;
-    tr.appendChild(tdLevel);
-
-    // Workshop Level
-    let tdWorkshop = document.createElement('td');
-    tdWorkshop.textContent = p.workshop;
-    tdWorkshop.contentEditable = false;
-    tr.appendChild(tdWorkshop);
-
-    // Workshop Status
-    let tdWorkshopStatus = document.createElement('td');
-    tdWorkshopStatus.className = 'workshop-status';
-    tdWorkshopStatus.textContent = calculateWorkshopStatus(p.level, p.workshop);
-    tr.appendChild(tdWorkshopStatus);
-
-    // Missed fights
-    let tdMissed = document.createElement('td');
-    tdMissed.textContent = p.missed;
-    tdMissed.contentEditable = false;
-    tr.appendChild(tdMissed);
-
-    // Info (skryté, pro modál)
-    let tdInfo = document.createElement('td');
-    tdInfo.textContent = p.info;
-    tdInfo.style.display = 'none';
-    tr.appendChild(tdInfo);
-
-    // Delete button
-    let tdDelete = document.createElement('td');
-    let btnDelete = document.createElement('button');
-    btnDelete.textContent = 'Smazat';
-    btnDelete.disabled = !editMode;
-    btnDelete.className = 'delete-btn';
-    btnDelete.onclick = () => {
-      if (!editMode) return alert('Nejdříve povol úpravy');
-      if (confirm(`Opravdu smazat hráče ${p.name}?`)) {
-        tr.remove();
-      }
-    };
-    tdDelete.appendChild(btnDelete);
-    tr.appendChild(tdDelete);
-
-    tbody.appendChild(tr);
-  });
-
-
-      // Role select pro úpravu role
-      let tdRoleSelect = document.createElement('td');
-      let select = document.createElement('select');
-      select.className = 'role-select';
-      select.disabled = true;
-      ['leader', 'officer', 'member'].forEach(r => {
-        let opt = document.createElement('option');
-        opt.value = r;
-        opt.text = r.charAt(0).toUpperCase() + r.slice(1) + ' ' + roleIcon(r);
-        if(r === p.role) opt.selected = true;
-        select.appendChild(opt);
-      });
-      select.onchange = function() {
-        tdRoleIcon.textContent = roleIcon(this.value);
-      };
-      tdRoleSelect.appendChild(select);
-      tr.insertBefore(tdRoleSelect, tdName);
-
-      tbody.appendChild(tr);
-    });
-  }
-
-  function calculateWorkshopStatus(level, workshopLvl) {
-    // Limity dle levelu (zjednodušeno)
-    const limits = [
-      { lvl: 500, limit: 20 },
-      { lvl: 450, limit: 19 },
-      { lvl: 400, limit: 18 },
-      { lvl: 350, limit: 17 },
-      { lvl: 325, limit: 16 },
-      { lvl: 300, limit: 15 },
-      { lvl: 275, limit: 14 },
-      { lvl: 250, limit: 13 },
-      { lvl: 230, limit: 12 },
-      { lvl: 210, limit: 11 },
-      { lvl: 190, limit: 10 },
-      { lvl: 170, limit: 9 },
-      { lvl: 150, limit: 8 },
-      { lvl: 100, limit: 7 },
-    ];
-    level = Number(level);
-    workshopLvl = Number(workshopLvl);
-    let allowed = 7; // default
-    for(let i=0; i<limits.length; i++) {
-      if(level >= limits[i].lvl) {
-        allowed = limits[i].limit;
-        break;
-      }
-    }
-    if(workshopLvl === allowed) return 'OK';
-    if(workshopLvl > allowed) return `+${workshopLvl - allowed}`;
-    return `-${allowed - workshopLvl}`;
-  }
-
-  function addPlayerRow(tbodyId) {
-    if(!editMode) return alert('Nejdříve povol úpravy.');
-    const tbody = document.getElementById(tbodyId);
-    const tr = document.createElement('tr');
-    
-  if(tbodyId === 'playersBody') {
-    // Role select
-    let tdRoleSelect = document.createElement('td');
-    let select = document.createElement('select');
-    select.className = 'role-select';
-    select.disabled = !editMode;
-    ['leader', 'officer', 'member'].forEach(r => {
-      let opt = document.createElement('option');
-      opt.value = r;
-      opt.text = r.charAt(0).toUpperCase() + r.slice(1) + ' ' + roleIcon(r);
-      if(r === 'member') opt.selected = true;
-      select.appendChild(opt);
-  });
-  tdRoleSelect.appendChild(select);
-  tr.appendChild(tdRoleSelect);
-
-  // Role icon
-  let tdRoleIcon = document.createElement('td');
-  tdRoleIcon.className = 'role-icon';
-  tdRoleIcon.textContent = roleIcon('member');
-  tr.appendChild(tdRoleIcon);
-
-  select.onchange = function() {
-    tdRoleIcon.textContent = roleIcon(this.value);
-  };
-
-  // Name + info icon
-  let tdName = document.createElement('td');
-  tdName.contentEditable = editMode ? "true" : "false";
-
-  let infoIcon = document.createElement('span');
-  infoIcon.className = 'info-icon';
-  infoIcon.textContent = 'ℹ️';
-  infoIcon.title = 'Zobrazit / upravit info hráče';
-  infoIcon.onclick = () => openInfoModal(tdInfo, tdName);
-  tdName.appendChild(document.createTextNode(''));
-  tdName.appendChild(infoIcon);
-  tr.appendChild(tdName);
-
-  // Level
-  let tdLevel = document.createElement('td');
-  tdLevel.contentEditable = editMode ? "true" : "false";
-  tr.appendChild(tdLevel);
-
-  // Workshop Level
-  let tdWorkshop = document.createElement('td');
-  tdWorkshop.contentEditable = editMode ? "true" : "false";
-  tr.appendChild(tdWorkshop);
-
-  // Workshop Status
-  let tdWorkshopStatus = document.createElement('td');
-  tdWorkshopStatus.className = 'workshop-status';
-  tdWorkshopStatus.textContent = '-';
-  tr.appendChild(tdWorkshopStatus);
-
-  // Missed fights
-  let tdMissed = document.createElement('td');
-  tdMissed.contentEditable = editMode ? "true" : "false";
-  tr.appendChild(tdMissed);
-
-  // Info skryté
-  let tdInfo = document.createElement('td');
-  tdInfo.style.display = 'none';
-  tr.appendChild(tdInfo);
-
-  // Delete button
-  let tdDelete = document.createElement('td');
-  let btnDelete = document.createElement('button');
-  btnDelete.textContent = 'Smazat';
-  btnDelete.disabled = !editMode;
-  btnDelete.className = 'delete-btn';
-  btnDelete.onclick = () => {
-    if(!editMode) return alert('Nejdříve povol úpravy');
-    if(confirm('Opravdu smazat tento řádek?')) {
-      tr.remove();
-    }
-  };
-  tdDelete.appendChild(btnDelete);
-  tr.appendChild(tdDelete);
-}
-
-
-    } else if(tbodyId === 'xpBody' || tbodyId === 'heroconBody') {
-      // Pro turnaje
-      ['Rank','Name','Points'].forEach(() => {
-        const td = document.createElement('td');
-        td.contentEditable = "true";
-        tr.appendChild(td);
-      });
-      tbody.appendChild(tr);
-      return;
-    }
-
-    tbody.appendChild(tr);
-  }
-
-  // --- Update turnajů (přepočítat workshop status u hráčů v případě potřeby) ---
-  function updateTournament(type) {
-    if(type === 'xp') {
-      alert('Funkce aktualizace XP Tournament zatím není implementována.');
-      document.getElementById('xpUpdateDate').textContent = new Date().toLocaleString();
-    } else if(type === 'herocon') {
-      alert('Funkce aktualizace HeroCon Tournament zatím není implementována.');
-      document.getElementById('heroconUpdateDate').textContent = new Date().toLocaleString();
-    }
-  }
-
-  // --- Grafy ---
-
-  function createXPChart() {
-    const ctx = document.getElementById('xpChart').getContext('2d');
-    const names = [];
-    const points = [];
-    document.querySelectorAll('#xpBody tr').forEach(tr => {
-      names.push(tr.cells[1].textContent);
-      points.push(Number(tr.cells[2].textContent) || 0);
-    });
-    return new Chart(ctx, {
-      type: 'bar',
-      data: {
-        labels: names,
-        datasets: [{
-          label: 'XP',
-          data: points,
-          backgroundColor: 'rgba(0,255,200,0.6)',
-          borderColor: 'rgba(0,255,200,1)',
-          borderWidth: 1
-        }]
-      },
-      options: {
-        responsive: true,
-        scales: { y: { beginAtZero: true } },
-        plugins: { legend: { labels: { color: '#00ffc8' } } }
-      }
-    });
-  }
-
-  function createHeroConChart() {
-    const ctx = document.getElementById('heroconChart').getContext('2d');
-    const names = [];
-    const points = [];
-    document.querySelectorAll('#heroconBody tr').forEach(tr => {
-      names.push(tr.cells[1].textContent);
-      points.push(Number(tr.cells[2].textContent) || 0);
-    });
-    return new Chart(ctx, {
-      type: 'line',
-      data: {
-        labels: names,
-        datasets: [{
-          label: 'HeroCon',
-          data: points,
-          borderColor: '#00ffc8',
-          backgroundColor: 'rgba(0,255,200,0.3)',
-          fill: true,
-          tension: 0.3,
-        }]
-      },
-      options: {
-        responsive: true,
-        scales: { y: { beginAtZero: true } },
-        plugins: { legend: { labels: { color: '#00ffc8' } } }
-      }
-    });
-  }
-
-  let xpChart, heroconChart;
-
-  function refreshCharts() {
-    if(xpChart) xpChart.destroy();
-    if(heroconChart) heroconChart.destroy();
-    xpChart = createXPChart();
-    heroconChart = createHeroConChart();
-  }
-
-  function openInfoModal(tdInfoCell, tdNameCell) {
-    if (!editMode) return alert('Nejdříve povol úpravy.');
-
-    const modal = document.getElementById('infoModal');
-    const overlay = document.getElementById('modalOverlay');
-    const textarea = document.getElementById('infoText');
-
-    textarea.value = tdInfoCell.textContent;
-
-    modal.style.display = 'block';
-    overlay.style.display = 'block';
-
-    // uložíme do modálního okna reference pro update
-    modal.currentInfoCell = tdInfoCell;
-    modal.currentNameCell = tdNameCell;
-  }
-
-  function closeModal(cancel = false) {
-    const modal = document.getElementById('infoModal');
-    const overlay = document.getElementById('modalOverlay');
-    if (!cancel) {
-      // uložit změny do skrytého td info
-      modal.currentInfoCell.textContent = document.getElementById('infoText').value;
-    }
-    modal.style.display = 'none';
-    overlay.style.display = 'none';
-  }
-
-  
-  // --- PDF export ---
-  async function saveTableToPDF(tableId, title) {
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
-
-    doc.setTextColor('#00ffc8');
-    doc.setFontSize(18);
-    doc.text(title, 10, 15);
-
-    const table = document.getElementById(tableId);
-    const data = [];
-    const headers = [];
-    table.querySelectorAll('thead th').forEach(th => {
-      headers.push(th.textContent);
-    });
-    table.querySelectorAll('tbody tr').forEach(tr => {
-      const row = [];
-      tr.querySelectorAll('td').forEach(td => {
-        row.push(td.textContent);
-      });
-      data.push(row);
-    });
-
-    doc.setFontSize(11);
-    doc.autoTable({
-      head: [headers],
-      body: data,
-      startY: 25,
-      theme: 'grid',
-      headStyles: { fillColor: [0, 255, 200] },
-      styles: { textColor: 0, fontSize: 9 }
-    });
-
-    doc.save(title + '.pdf');
-  }
-
-  // --- Initialization ---
-
-  // Render players on page load
-  renderPlayers();
-  refreshCharts();
-
-  // Recreate charts on table content change
-  document.querySelectorAll('#xpBody, #heroconBody').forEach(tbody => {
-    tbody.addEventListener('input', () => {
-      refreshCharts();
-    });
-  });
-
-</script>
-
-  
-  
-<!-- Add jsPDF autotable plugin (needed for tables in PDF) -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
 
 <!-- Modal pro info hráče -->
 <div id="infoModal" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%);
@@ -834,6 +339,431 @@ Casino with high quality rewards
 </div>
 <div id="modalOverlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%;
   background:rgba(0,0,0,0.5); z-index:999;"></div>
-  
+
+<script>
+  // Proměnné a data
+  let editMode = false;
+  let playersData = [
+    {name: 'Sazaro', level: 527, workshop: 20, missed: 0, info: 'Velitel týmu.', role: 'leader'},
+    {name: 'Alfa', level: 521, workshop: 20, missed: 0, info: 'Důstojník.', role: 'officer'},
+    {name: 'Liones', level: 515, workshop: 19, missed: 0, info: 'Důstojník.', role: 'officer'},
+    {name: 'Bandita', level: 506, workshop: 20, missed: 0, info: 'Důstojník.', role: 'officer'},
+    {name: 'Blesk', level: 500, workshop: 20, missed: 0, info: 'Důstojník.', role: 'officer'},
+    {name: 'Ranny', level: 480, workshop: 19, missed: 0, info: 'Důstojník.', role: 'officer'},
+    {name: 'Loniz1337', level: 475, workshop: 19, missed: 0, info: 'Důstojník.', role: 'officer'}
+  ];
+
+  let xpData = [
+    {name: 'Sazaro', xp: Array(20).fill(0)},
+    {name: 'Alfa', xp: Array(20).fill(0)},
+    {name: 'Liones', xp: Array(20).fill(0)},
+    {name: 'Bandita', xp: Array(20).fill(0)},
+    {name: 'Blesk', xp: Array(20).fill(0)},
+    {name: 'Ranny', xp: Array(20).fill(0)},
+    {name: 'Loniz1337', xp: Array(20).fill(0)},
+  ];
+
+  let heroconData = [
+    {name: 'Sazaro', hc: Array(10).fill(0)},
+    {name: 'Alfa', hc: Array(10).fill(0)},
+    {name: 'Liones', hc: Array(10).fill(0)},
+    {name: 'Bandita', hc: Array(10).fill(0)},
+    {name: 'Blesk', hc: Array(10).fill(0)},
+    {name: 'Ranny', hc: Array(10).fill(0)},
+    {name: 'Loniz1337', hc: Array(10).fill(0)},
+  ];
+
+  // Pomocná funkce na ikonu role
+  function roleIcon(role) {
+    switch(role) {
+      case 'leader': return '👑';
+      case 'officer': return '🛡️';
+      default: return '👤';
+    }
+  }
+
+  // Zobrazení sekce
+  function showSection(name) {
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.getElementById(name).classList.add('active');
+  }
+
+  // Výpočet statusu dílny
+  function calculateWorkshopStatus(level, workshop) {
+    // Limity dle levelu
+    const limits = [
+      {lvl: 500, w: 20}, {lvl: 450, w: 19}, {lvl: 400, w: 18}, {lvl: 350, w: 17},
+      {lvl: 325, w: 16}, {lvl: 300, w: 15}, {lvl: 275, w: 14}, {lvl: 250, w: 13},
+      {lvl: 230, w: 12}, {lvl: 210, w: 11}, {lvl: 190, w: 10}, {lvl: 170, w: 9},
+      {lvl: 150, w: 8}, {lvl: 100, w: 7},
+    ];
+    let allowed = 7;
+    for(let l of limits){
+      if(level >= l.lvl) {
+        allowed = l.w;
+        break;
+      }
+    }
+    let diff = workshop - allowed;
+    if(diff > 0) return '+' + diff;
+    else if(diff < 0) return diff.toString();
+    else return 'OK';
+  }
+
+  // Render tabulky hráčů
+  function renderPlayers() {
+    const tbody = document.getElementById('playersBody');
+    tbody.innerHTML = '';
+    playersData.forEach(p => {
+      const tr = document.createElement('tr');
+
+      // Role select
+      let tdRoleSelect = document.createElement('td');
+      let select = document.createElement('select');
+      select.className = 'role-select';
+      select.disabled = !editMode;
+      ['leader','officer','member'].forEach(r => {
+        let opt = document.createElement('option');
+        opt.value = r;
+        opt.text = r.charAt(0).toUpperCase() + r.slice(1) + ' ' + roleIcon(r);
+        if(r === p.role) opt.selected = true;
+        select.appendChild(opt);
+      });
+      tdRoleSelect.appendChild(select);
+      tr.appendChild(tdRoleSelect);
+
+      // Role icon
+      let tdRoleIcon = document.createElement('td');
+      tdRoleIcon.className = 'role-icon';
+      tdRoleIcon.textContent = roleIcon(p.role);
+      tr.appendChild(tdRoleIcon);
+
+      select.onchange = function(){
+        tdRoleIcon.textContent = roleIcon(this.value);
+        p.role = this.value;
+      };
+
+      // Name + info icon
+      let tdName = document.createElement('td');
+      tdName.textContent = p.name;
+      tdName.contentEditable = false;
+
+      let infoIcon = document.createElement('span');
+      infoIcon.className = 'info-icon';
+      infoIcon.title = 'Zobrazit / upravit info hráče';
+      infoIcon.textContent = 'ℹ️';
+      infoIcon.onclick = () => openInfoModal(tr.querySelector('td.info-hidden'), tdName);
+      tdName.appendChild(document.createTextNode(' '));
+      tdName.appendChild(infoIcon);
+      tr.appendChild(tdName);
+
+      // Level
+      let tdLevel = document.createElement('td');
+      tdLevel.textContent = p.level;
+      tdLevel.contentEditable = editMode ? "true" : "false";
+      tdLevel.oninput = () => {
+        let val = parseInt(tdLevel.textContent) || 0;
+        p.level = val;
+        updateWorkshopStatus(tdWorkshopStatus, p);
+      }
+      tr.appendChild(tdLevel);
+
+      // Workshop Level
+      let tdWorkshop = document.createElement('td');
+      tdWorkshop.textContent = p.workshop;
+      tdWorkshop.contentEditable = editMode ? "true" : "false";
+      tdWorkshop.oninput = () => {
+        let val = parseInt(tdWorkshop.textContent) || 0;
+        p.workshop = val;
+        updateWorkshopStatus(tdWorkshopStatus, p);
+      }
+      tr.appendChild(tdWorkshop);
+
+      // Workshop status
+      let tdWorkshopStatus = document.createElement('td');
+      tdWorkshopStatus.className = 'workshop-status';
+      tdWorkshopStatus.textContent = calculateWorkshopStatus(p.level, p.workshop);
+      tr.appendChild(tdWorkshopStatus);
+
+      // Missed fights
+      let tdMissed = document.createElement('td');
+      tdMissed.textContent = p.missed;
+      tdMissed.contentEditable = editMode ? "true" : "false";
+      tdMissed.oninput = () => {
+        let val = parseInt(tdMissed.textContent) || 0;
+        p.missed = val;
+      }
+      tr.appendChild(tdMissed);
+
+      // Info skryté
+      let tdInfo = document.createElement('td');
+      tdInfo.textContent = p.info;
+      tdInfo.style.display = 'none';
+      tdInfo.className = 'info-hidden';
+      tr.appendChild(tdInfo);
+
+      // Delete button
+      let tdDelete = document.createElement('td');
+      let btnDelete = document.createElement('button');
+      btnDelete.textContent = 'Smazat';
+      btnDelete.disabled = !editMode;
+      btnDelete.className = 'delete-btn';
+      btnDelete.onclick = () => {
+        if(!editMode) return alert('Nejdříve povol úpravy.');
+        if(confirm(`Opravdu smazat hráče ${p.name}?`)) {
+          playersData = playersData.filter(pl => pl !== p);
+          renderPlayers();
+        }
+      };
+      tdDelete.appendChild(btnDelete);
+      tr.appendChild(tdDelete);
+
+      tbody.appendChild(tr);
+    });
+  }
+
+  function updateWorkshopStatus(td, player) {
+    td.textContent = calculateWorkshopStatus(player.level, player.workshop);
+  }
+
+  // Přidání nového hráče
+  function addPlayerRow(tbodyId) {
+    if(!editMode) return alert('Nejdříve povol úpravy.');
+    playersData.push({name:'Nový hráč', level:0, workshop:0, missed:0, info:'', role:'member'});
+    renderPlayers();
+  }
+
+  // Otevření modálního okna pro info
+  function openInfoModal(tdInfoCell, tdNameCell) {
+    if(!editMode) return alert('Nejdříve povol úpravy.');
+    const modal = document.getElementById('infoModal');
+    const overlay = document.getElementById('modalOverlay');
+    const textarea = document.getElementById('infoText');
+    textarea.value = tdInfoCell.textContent || '';
+    modal.style.display = 'block';
+    overlay.style.display = 'block';
+    modal.currentInfoCell = tdInfoCell;
+  }
+  // Zavření modálního okna
+  function closeModal(cancel=false) {
+    const modal = document.getElementById('infoModal');
+    const overlay = document.getElementById('modalOverlay');
+    if(!cancel) {
+      modal.currentInfoCell.textContent = document.getElementById('infoText').value;
+      // Aktualizovat i v data poli playersData
+      renderPlayers();
+    }
+    modal.style.display = 'none';
+    overlay.style.display = 'none';
+  }
+
+  // Povolení / zakázání úprav
+  function requestEditAccess() {
+    const pwd = prompt('Zadej heslo pro úpravy');
+    if(pwd === 'TopBanditi1') {
+      editMode = true;
+      enableEditing();
+      alert('Úpravy povoleny');
+    } else {
+      alert('Špatné heslo');
+    }
+  }
+
+  function enableEditing() {
+    renderPlayers();
+    // Povolit všechny selecty a tlačítka mazání
+    document.querySelectorAll('select.role-select').forEach(s=>s.disabled=false);
+    document.querySelectorAll('button.delete-btn').forEach(b=>b.disabled=false);
+    // Povolit textarea guildInfo
+    document.getElementById('guildInfo').readOnly = false;
+  }
+
+  // --- XP Tournament ---
+
+  function renderXpTable() {
+    const tbody = document.getElementById('xpBody');
+    tbody.innerHTML = '';
+    xpData.forEach(p => {
+      let tr = document.createElement('tr');
+
+      let tdName = document.createElement('td');
+      tdName.textContent = p.name;
+      tdName.contentEditable = false;
+      tr.appendChild(tdName);
+
+      let total = 0;
+      for(let i=0; i<20; i++) {
+        let td = document.createElement('td');
+        td.contentEditable = editMode ? "true" : "false";
+        td.textContent = p.xp[i];
+        td.oninput = () => {
+          let val = parseInt(td.textContent) || 0;
+          p.xp[i] = val;
+          updateXpChart();
+          renderXpTable(); // aby se total přepočítalo
+        }
+        tr.appendChild(td);
+        total += p.xp[i];
+      }
+      let tdTotal = document.createElement('td');
+      tdTotal.textContent = total;
+      tr.appendChild(tdTotal);
+
+      tbody.appendChild(tr);
+    });
+  }
+
+  let xpChart;
+
+  function updateXpChart() {
+    const ctx = document.getElementById('xpChart').getContext('2d');
+    if(xpChart) xpChart.destroy();
+    xpChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: xpData.map(p=>p.name),
+        datasets: [{
+          label: 'Celkem XP',
+          data: xpData.map(p => p.xp.reduce((a,b)=>a+b,0)),
+          backgroundColor: '#00ffc8',
+        }]
+      },
+      options: {
+        responsive: true,
+        scales: {
+          y: {beginAtZero:true}
+        }
+      }
+    });
+  }
+
+  function saveXp() {
+    alert('XP uložen (v paměti)');
+    renderXpTable();
+    updateXpChart();
+  }
+
+  // --- HeroCon Tournament ---
+
+  function renderHeroConTable() {
+    const tbody = document.getElementById('heroconBody');
+    tbody.innerHTML = '';
+    heroconData.forEach(p => {
+      let tr = document.createElement('tr');
+
+      let tdName = document.createElement('td');
+      tdName.textContent = p.name;
+      tdName.contentEditable = false;
+      tr.appendChild(tdName);
+
+      let total = 0;
+      for(let i=0; i<10; i++) {
+        let td = document.createElement('td');
+        td.contentEditable = editMode ? "true" : "false";
+        td.textContent = p.hc[i];
+        td.oninput = () => {
+          let val = parseInt(td.textContent) || 0;
+          p.hc[i] = val;
+          updateHeroConChart();
+          renderHeroConTable(); // aby se total přepočítalo
+        }
+        tr.appendChild(td);
+        total += p.hc[i];
+      }
+      let tdTotal = document.createElement('td');
+      tdTotal.textContent = total;
+      tr.appendChild(tdTotal);
+
+      tbody.appendChild(tr);
+    });
+  }
+
+  let heroconChart;
+
+  function updateHeroConChart() {
+    const ctx = document.getElementById('heroconChart').getContext('2d');
+    if(heroconChart) heroconChart.destroy();
+    heroconChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: heroconData.map(p=>p.name),
+        datasets: [{
+          label: 'Celkem HeroCon',
+          data: heroconData.map(p => p.hc.reduce((a,b)=>a+b,0)),
+          backgroundColor: '#00ffc8',
+        }]
+      },
+      options: {
+        responsive: true,
+        scales: {
+          y: {beginAtZero:true}
+        }
+      }
+    });
+  }
+
+  function saveHeroCon() {
+    alert('HeroCon uložen (v paměti)');
+    renderHeroConTable();
+    updateHeroConChart();
+  }
+
+  // --- PDF export funkce ---
+
+  async function saveTableToPDF(tableId, title) {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+
+    doc.setTextColor('#00ffc8');
+    doc.setFontSize(16);
+    doc.text(title, 10, 15);
+
+    // Načteme tabulku z HTML
+    let table = document.getElementById(tableId);
+    // Vyčistíme obsah tabulky - odstraníme skrytá td a upravíme obsah pro PDF
+    let clone = table.cloneNode(true);
+    clone.querySelectorAll('td.info-hidden').forEach(td => td.style.display = 'none');
+    clone.querySelectorAll('td[contenteditable]').forEach(td => td.style.backgroundColor = '#222');
+
+    // Použijeme autoTable plugin nebo jednoduchý přepis do PDF
+    // Protože autoTable plugin není načten, použijeme jednoduchý text export
+
+    let startY = 25;
+    let lineHeight = 7;
+    let y = startY;
+
+    for(let r=0; r<clone.rows.length; r++) {
+      let row = clone.rows[r];
+      let rowText = [];
+      for(let c=0; c<row.cells.length; c++) {
+        let cell = row.cells[c];
+        if(cell.style.display === 'none') continue;
+        let txt = cell.textContent.trim();
+        if(txt.length > 15) txt = txt.substring(0,15) + '...';
+        rowText.push(txt);
+      }
+      doc.text(rowText.join(' | '), 10, y);
+      y += lineHeight;
+      if(y > 280) {
+        doc.addPage();
+        y = 10;
+      }
+    }
+
+    doc.save(title+'.pdf');
+  }
+
+  // Inicializace tabulek a grafů
+  window.onload = () => {
+    renderPlayers();
+    renderXpTable();
+    updateXpChart();
+    renderHeroConTable();
+    updateHeroConChart();
+    showSection('guild'); // defaultní záložka
+  };
+
+</script>
+
 </body>
 </html>
