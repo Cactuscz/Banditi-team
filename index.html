@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <title>Banditi - Team Stats</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
   body {
     background-color: #1f1f2e;
@@ -58,7 +59,7 @@
     border-radius: 10px;
     overflow: hidden;
     box-shadow: 0 0 15px rgba(0,0,0,0.5);
-    margin-bottom: 10px;
+    margin-bottom: 15px;
   }
   th, td {
     padding: 12px 18px;
@@ -159,6 +160,12 @@
   .update-btn:hover {
     background-color: #00d1a8;
   }
+  .positive {
+    color: #00ff00;
+  }
+  .negative {
+    color: #ff0000;
+  }
   .workshop-status {
     font-weight: bold;
   }
@@ -166,9 +173,16 @@
     width: 100% !important;
     height: 400px !important;
   }
-  .history-section {
+  .history {
+    background-color: #2a2a3d;
+    color: #00ffc8;
+    padding: 10px;
     margin-top: 10px;
-    margin-bottom: 30px;
+    font-family: monospace;
+    max-height: 150px;
+    overflow-y: auto;
+    border-radius: 8px;
+    white-space: pre-wrap;
   }
 </style>
 </head>
@@ -302,290 +316,423 @@ Villains:
 2025-07-22 10:45:00 Ice Cold Real Estate Shark
 2025-07-23 05:15:00 General Bombman
 2025-07-24 04:00:00 The Joker
-2025-07-25 03:30:00 The Avenging Avenger
-2025-07-25 17:45:00 The Quantum Physicist
-2025-07-26 06:00:00 Nasty Burglar Duo
-2025-07-26 20:00:00 Pompous Salesman
-2025-07-27 05:00:00 The Joker
-2025-07-27 15:30:00 Ice Cold Real Estate Shark
-2025-07-28 17:45:00 The Joker
-2025-07-29 04:15:00 The Quantum Physicist
-2025-07-29 20:00:00 Boorish Rocker Rowdy
-2025-07-30 09:30:00 Pompous Salesman
-2025-07-30 16:15:00 The Avenging Avenger
-2025-07-31 03:15:00 Nasty Burglar Duo
-2025-07-31 10:45:00 The Quantum Physicist
-2025-07-31 15:30:00 Ice Cold Real Estate Shark
+
   </textarea>
+  <br>
+  <button class="update-btn" onclick="saveGuildInfo()" style="display:none;">Uložit změny</button>
 </div>
 
 <div id="players" class="section">
   <h2>Players Info <span class="edit-icon" onclick="requestEditAccess()">✏️</span></h2>
-  
-  <div class="limits">
-    <h2>Limity dílny podle levelu:</h2>
-    <ul>
-        <li>Lvl 500+ → Dílna 20</li>
-        <li>Lvl 450+ → Dílna 19</li>
-        <li>Lvl 400+ → Dílna 18</li>
-        <li>Lvl 350+ → Dílna 17</li>
-        <li>Lvl 325+ → Dílna 16</li>
-        <li>Lvl 300+ → Dílna 15</li>
-        <li>Lvl 275+ → Dílna 14</li>
-        <li>Lvl 250+ → Dílna 13</li>
-        <li>Lvl 230+ → Dílna 12</li>
-        <li>Lvl 210+ → Dílna 11</li>
-        <li>Lvl 190+ → Dílna 10</li>
-        <li>Lvl 170+ → Dílna 9</li>
-        <li>Lvl 150+ → Dílna 8</li>
-        <li>Lvl 100+ → Dílna 7</li>
-    </ul>
-  </div>
-  
-  <button class="add-player" onclick="addPlayerRow('playersBody')">➕ Add Player</button>
-  
-  <table>
+  <button class="add-player" onclick="addPlayer()">+ Přidat hráče</button>
+  <table id="playersTable">
     <thead>
       <tr>
-        <th>Nickname</th>
-        <th>Level</th>
-        <th>Workshop Level</th>
+        <th>Ikona</th>
+        <th>Jméno</th>
+        <th>Rank</th>
         <th>Workshop Status</th>
-        <th>Vynechané boje</th>
+        <th>Limit dílny</th>
+        <th>Info</th>
+        <th>Akce</th>
       </tr>
     </thead>
-    <tbody id="playersBody">
+    <tbody contenteditable="false">
+      <!-- Ukázkový hráč -->
+      <tr>
+        <td class="role-icon" data-player="Alfa">👑</td>
+        <td contenteditable="true">Alfa</td>
+        <td>
+          <select onchange="updateRoleIcon(this)">
+            <option value="leader" selected>Leader (👑)</option>
+            <option value="officer">Důstojník (🛡️)</option>
+            <option value="member">Člen (👤)</option>
+          </select>
+        </td>
+        <td class="workshop-status">OK</td>
+        <td contenteditable="true">28</td>
+        <td contenteditable="true">ℹ️</td>
+        <td><button onclick="deletePlayer(this)">Smazat</button></td>
+      </tr>
+      <tr>
+        <td class="role-icon" data-player="Sazaro">🛡️</td>
+        <td contenteditable="true">Sazaro</td>
+        <td>
+          <select onchange="updateRoleIcon(this)">
+            <option value="leader">Leader (👑)</option>
+            <option value="officer" selected>Důstojník (🛡️)</option>
+            <option value="member">Člen (👤)</option>
+          </select>
+        </td>
+        <td class="workshop-status">+1</td>
+        <td contenteditable="true">32</td>
+        <td contenteditable="true">ℹ️</td>
+        <td><button onclick="deletePlayer(this)">Smazat</button></td>
+      </tr>
+      <!-- Další hráči -->
     </tbody>
   </table>
-  
-  <div class="history-section">
-    <button class="update-btn" onclick="exportTableToPDF('players')">💾 Uložit Players do PDF</button>
-  </div>
+  <button class="update-btn" onclick="savePlayersData()" style="display:none;">Uložit změny</button>
 </div>
 
 <div id="xp" class="section">
   <h2>XP Tournament <span class="edit-icon" onclick="requestEditAccess()">✏️</span></h2>
-  
-  <button class="update-btn" onclick="updateTournament('xp')">🔄 Aktualizovat</button>
-  <button class="add-player" onclick="addPlayerRow('xpBody')">➕ Add Player</button>
-  
+  <button class="add-player" onclick="addPlayerToXP()">+ Přidat hráče</button>
   <div class="tables-container">
     <div class="table-wrapper">
-      <div class="update-info">Last updated: <span id="xpUpdateDate"></span></div>
-      <table>
+      <table id="xpTable">
         <thead>
           <tr>
-            <th contenteditable="true">Rank</th>
-            <th contenteditable="true">Name</th>
-            <th contenteditable="true">XP Gained</th>
+            <th>Jméno</th>
+            <th>XP</th>
+            <th>Level dílny</th>
+            <th>Pořadí</th>
+            <th>Akce</th>
           </tr>
         </thead>
-        <tbody id="xpBody">
-          <tr><td>1</td><td>Alfa</td><td>1230</td></tr>
-          <tr><td>2</td><td>Sazaro</td><td>980</td></tr>
-          <tr><td>3</td><td>Bandita</td><td>840</td></tr>
+        <tbody contenteditable="false">
+          <tr>
+            <td contenteditable="true">Alfa</td>
+            <td contenteditable="true">12000</td>
+            <td contenteditable="true">28</td>
+            <td contenteditable="true">1</td>
+            <td><button onclick="deleteRow(this, 'xpTable')">Smazat</button></td>
+          </tr>
+          <tr>
+            <td contenteditable="true">Sazaro</td>
+            <td contenteditable="true">11000</td>
+            <td contenteditable="true">32</td>
+            <td contenteditable="true">2</td>
+            <td><button onclick="deleteRow(this, 'xpTable')">Smazat</button></td>
+          </tr>
         </tbody>
       </table>
-      <div class="history-section">
-        <button class="update-btn" onclick="exportTableToPDF('xp')">💾 Uložit XP Tournament do PDF</button>
-      </div>
+      <button class="update-btn" onclick="saveXPData()" style="display:none;">Uložit změny</button>
     </div>
     <div class="chart-wrapper">
       <canvas id="xpChart"></canvas>
     </div>
   </div>
+  <h3>Historie změn XP Tournament</h3>
+  <pre id="xpHistory" class="history"></pre>
 </div>
 
 <div id="herocon" class="section">
   <h2>HeroCon Tournament <span class="edit-icon" onclick="requestEditAccess()">✏️</span></h2>
-  
-  <button class="update-btn" onclick="updateTournament('herocon')">🔄 Aktualizovat</button>
-  <button class="add-player" onclick="addPlayerRow('heroconBody')">➕ Add Player</button>
-  
+  <button class="add-player" onclick="addPlayerToHeroCon()">+ Přidat hráče</button>
   <div class="tables-container">
     <div class="table-wrapper">
-      <div class="update-info">Last updated: <span id="heroconUpdateDate"></span></div>
-      <table>
+      <table id="heroconTable">
         <thead>
           <tr>
-            <th contenteditable="true">Rank</th>
-            <th contenteditable="true">Name</th>
-            <th contenteditable="true">HeroCon Score</th>
+            <th>Jméno</th>
+            <th>Body</th>
+            <th>Level dílny</th>
+            <th>Pořadí</th>
+            <th>Akce</th>
           </tr>
         </thead>
-        <tbody id="heroconBody">
-          <tr><td>1</td><td>Alfa</td><td>1050</td></tr>
-          <tr><td>2</td><td>Liones</td><td>970</td></tr>
-          <tr><td>3</td><td>Bandita</td><td>910</td></tr>
+        <tbody contenteditable="false">
+          <tr>
+            <td contenteditable="true">Alfa</td>
+            <td contenteditable="true">2300</td>
+            <td contenteditable="true">28</td>
+            <td contenteditable="true">1</td>
+            <td><button onclick="deleteRow(this, 'heroconTable')">Smazat</button></td>
+          </tr>
+          <tr>
+            <td contenteditable="true">Sazaro</td>
+            <td contenteditable="true">2200</td>
+            <td contenteditable="true">32</td>
+            <td contenteditable="true">2</td>
+            <td><button onclick="deleteRow(this, 'heroconTable')">Smazat</button></td>
+          </tr>
         </tbody>
       </table>
-      <div class="history-section">
-        <button class="update-btn" onclick="exportTableToPDF('herocon')">💾 Uložit HeroCon Tournament do PDF</button>
-      </div>
+      <button class="update-btn" onclick="saveHeroConData()" style="display:none;">Uložit změny</button>
     </div>
     <div class="chart-wrapper">
       <canvas id="heroconChart"></canvas>
     </div>
   </div>
+  <h3>Historie změn HeroCon Tournament</h3>
+  <pre id="heroconHistory" class="history"></pre>
 </div>
 
 <script>
-const limits = [
-  { level: 500, workshop: 20 },
-  { level: 450, workshop: 19 },
-  { level: 400, workshop: 18 },
-  { level: 350, workshop: 17 },
-  { level: 325, workshop: 16 },
-  { level: 300, workshop: 15 },
-  { level: 275, workshop: 14 },
-  { level: 250, workshop: 13 },
-  { level: 230, workshop: 12 },
-  { level: 210, workshop: 11 },
-  { level: 190, workshop: 10 },
-  { level: 170, workshop: 9 },
-  { level: 150, workshop: 8 },
-  { level: 100, workshop: 7 }
-];
+let editMode = false;
+const PASSWORD = "TopBanditi1";
 
-function showSection(name) {
+// --- Přepínání sekcí ---
+function showSection(id) {
   document.querySelectorAll('.section').forEach(sec => {
     sec.classList.remove('active');
   });
-  document.getElementById(name).classList.add('active');
+  document.getElementById(id).classList.add('active');
 }
 
-// Inicialně zobrazíme players sekci
-showSection('players');
-
-function addPlayerRow(tbodyId) {
-  const tbody = document.getElementById(tbodyId);
-  const row = document.createElement('tr');
-  
-  if(tbodyId === 'playersBody') {
-    row.innerHTML = `
-      <td contenteditable="true">NewPlayer</td>
-      <td contenteditable="true">100</td>
-      <td contenteditable="true">7</td>
-      <td class="workshop-status"></td>
-      <td contenteditable="true">0</td>
-    `;
-  } else {
-    // XP and HeroCon tables: rank, name, score
-    row.innerHTML = `
-      <td contenteditable="true">0</td>
-      <td contenteditable="true">NewPlayer</td>
-      <td contenteditable="true">0</td>
-    `;
-  }
-  
-  tbody.appendChild(row);
-  if(tbodyId === 'playersBody') updateWorkshopStatusRow(row);
-}
-
-function updateWorkshopStatusRow(row) {
-  const levelCell = row.cells[1];
-  const workshopCell = row.cells[2];
-  const statusCell = row.cells[3];
-
-  let lvl = parseInt(levelCell.textContent) || 0;
-  let workshopLvl = parseInt(workshopCell.textContent) || 0;
-
-  // Najdi požadovaný workshop level podle levelu
-  let requiredWorkshop = 0;
-  for (const limit of limits) {
-    if (lvl >= limit.level) {
-      requiredWorkshop = limit.workshop;
-      break;
-    }
-  }
-
-  let diff = workshopLvl - requiredWorkshop;
-
-  if (diff === 1) {
-    statusCell.textContent = '+1';
-    statusCell.style.color = '#0099ff';  // modrá
-  } else if (diff === 0) {
-    statusCell.textContent = 'OK';
-    statusCell.style.color = '#00ff90';  // zelená
-  } else if (diff === -1) {
-    statusCell.textContent = '-1';
-    statusCell.style.color = '#ff5050';  // červená
-  } else {
-    statusCell.textContent = '-1';
-    statusCell.style.color = '#ff5050';
-  }
-}
-
-function updateAllWorkshopStatuses() {
-  const tbody = document.getElementById('playersBody');
-  for (const row of tbody.rows) {
-    updateWorkshopStatusRow(row);
-  }
-}
-
-document.getElementById('playersBody').addEventListener('input', e => {
-  if(e.target.tagName === 'TD') {
-    // Aktualizuj workshop status jen pokud je změněn level nebo workshop level
-    const cellIndex = e.target.cellIndex;
-    if(cellIndex === 1 || cellIndex === 2) {
-      const row = e.target.parentElement;
-      updateWorkshopStatusRow(row);
-    }
-  }
-});
-
-// Inicializace workshop status u existujících hráčů (pokud nějaké máš)
-window.onload = () => {
-  updateAllWorkshopStatuses();
-  showSection('players');
-}
-
-// --- XP Tournament a HeroCon Tournament ---
-
-function updateTournament(type) {
-  const tbody = document.getElementById(type + 'Body');
-  const rows = Array.from(tbody.rows);
-
-  // Seřadit podle skóre sestupně (3. sloupec)
-  rows.sort((a,b) => {
-    const scoreA = parseInt(a.cells[2].textContent) || 0;
-    const scoreB = parseInt(b.cells[2].textContent) || 0;
-    return scoreB - scoreA;
-  });
-
-  // Aktualizovat pořadí (rank)
-  rows.forEach((row, index) => {
-    row.cells[0].textContent = index + 1;
-  });
-
-  // Vymazat a vložit zpět seřazené řádky
-  tbody.innerHTML = '';
-  for(const row of rows) tbody.appendChild(row);
-
-  // Aktualizovat datum poslední aktualizace
-  const now = new Date();
-  const dateStr = now.toLocaleString('cs-CZ', { dateStyle: 'short', timeStyle: 'short' });
-  document.getElementById(type + 'UpdateDate').textContent = dateStr;
-}
-
-// Export do PDF (jednoduchý, jen tabulka)
-function exportTableToPDF(type) {
-  alert(`Export do PDF funkce není zatím implementovaná, ale příkaz by měl exportovat tabulku ${type}.`);
-  // Zde můžeš přidat implementaci exportu do PDF např. s knihovnou jsPDF nebo reportlab na serveru
-}
-
-// Odemčení úprav Guild Info (přesné řešení hesla nechávám na tobě)
+// --- Žádost o povolení úprav ---
 function requestEditAccess() {
-  const pw = prompt('Zadej heslo pro úpravy:');
-  if(pw === 'TopBanditi1') {
-    const guildArea = document.getElementById('guildInfo');
-    guildArea.readOnly = false;
-    alert('Úpravy povoleny.');
+  if(editMode) {
+    alert("Úpravy již jsou povolené.");
+    return;
+  }
+  const pwd = prompt("Zadej heslo pro úpravy:");
+  if(pwd === PASSWORD) {
+    editMode = true;
+    enableEditing();
+    alert("Úpravy povoleny.");
   } else {
-    alert('Špatné heslo!');
+    alert("Špatné heslo.");
   }
 }
-</script>
 
+// --- Povolení úprav ---
+function enableEditing() {
+  // Guild info
+  document.getElementById('guildInfo').readOnly = false;
+  document.querySelector('#guild .update-btn').style.display = "inline-block";
+
+  // Players table - povolit editaci jmen, limitů, info a rank select
+  const playersTable = document.getElementById('playersTable');
+  playersTable.querySelectorAll('tbody tr').forEach(row => {
+    row.querySelectorAll('td[contenteditable]').forEach(td => td.contentEditable = "true");
+    row.querySelector('select').disabled = false;
+  });
+  document.querySelector('#players .update-btn').style.display = "inline-block";
+
+  // XP a HeroCon tabulky - povolit editaci buněk
+  ['xpTable', 'heroconTable'].forEach(tableId => {
+    const table = document.getElementById(tableId);
+    table.querySelectorAll('tbody tr').forEach(row => {
+      row.querySelectorAll('td[contenteditable]').forEach(td => td.contentEditable = "true");
+    });
+    document.querySelector(`#${tableId === 'xpTable' ? 'xp' : 'herocon'} .update-btn`).style.display = "inline-block";
+  });
+}
+
+// --- Uložení Guild Info ---
+function saveGuildInfo() {
+  // Uložit třeba do localStorage nebo na server
+  const text = document.getElementById('guildInfo').value;
+  localStorage.setItem('guildInfo', text);
+  alert("Guild info uloženo.");
+}
+
+// --- Aktualizace ikon rolí ---
+function updateRoleIcon(selectElem) {
+  const tr = selectElem.closest('tr');
+  const iconTd = tr.querySelector('.role-icon');
+  switch(selectElem.value) {
+    case 'leader': iconTd.textContent = '👑'; break;
+    case 'officer': iconTd.textContent = '🛡️'; break;
+    case 'member': iconTd.textContent = '👤'; break;
+  }
+}
+
+// --- Přidání hráče do players tabulky ---
+function addPlayer() {
+  if(!editMode) { alert("Nejdříve povol úpravy."); return; }
+  const tbody = document.querySelector('#playersTable tbody');
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td class="role-icon">👤</td>
+    <td contenteditable="true">Nový hráč</td>
+    <td>
+      <select onchange="updateRoleIcon(this)">
+        <option value="leader">Leader (👑)</option>
+        <option value="officer">Důstojník (🛡️)</option>
+        <option value="member" selected>Člen (👤)</option>
+      </select>
+    </td>
+    <td class="workshop-status">OK</td>
+    <td contenteditable="true">0</td>
+    <td contenteditable="true">ℹ️</td>
+    <td><button onclick="deletePlayer(this)">Smazat</button></td>
+  `;
+  tbody.appendChild(tr);
+}
+
+// --- Smazání hráče ---
+function deletePlayer(button) {
+  if(!editMode) { alert("Nejdříve povol úpravy."); return; }
+  if(confirm("Opravdu chcete smazat tohoto hráče?")) {
+    button.closest('tr').remove();
+  }
+}
+
+// --- Uložení Players Data ---
+function savePlayersData() {
+  // Tady by jsi mohl uložit data na server/localStorage
+  alert("Data hráčů uložena.");
+  updateWorkshopStatus();
+}
+
+// --- Přidání hráče do XP tabulky ---
+function addPlayerToXP() {
+  if(!editMode) { alert("Nejdříve povol úpravy."); return; }
+  const tbody = document.querySelector('#xpTable tbody');
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td contenteditable="true">Nový hráč</td>
+    <td contenteditable="true">0</td>
+    <td contenteditable="true">0</td>
+    <td contenteditable="true">0</td>
+    <td><button onclick="deleteRow(this, 'xpTable')">Smazat</button></td>
+  `;
+  tbody.appendChild(tr);
+}
+
+// --- Přidání hráče do HeroCon tabulky ---
+function addPlayerToHeroCon() {
+  if(!editMode) { alert("Nejdříve povol úpravy."); return; }
+  const tbody = document.querySelector('#heroconTable tbody');
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td contenteditable="true">Nový hráč</td>
+    <td contenteditable="true">0</td>
+    <td contenteditable="true">0</td>
+    <td contenteditable="true">0</td>
+    <td><button onclick="deleteRow(this, 'heroconTable')">Smazat</button></td>
+  `;
+  tbody.appendChild(tr);
+}
+
+// --- Smazání řádku v libovolné tabulce ---
+function deleteRow(button, tableId) {
+  if(!editMode) { alert("Nejdříve povol úpravy."); return; }
+  if(confirm("Opravdu chcete smazat tento záznam?")) {
+    button.closest('tr').remove();
+  }
+}
+
+// --- Uložení XP dat ---
+function saveXPData() {
+  alert("XP data uložena.");
+  updateXPChart();
+  logXPChanges();
+}
+
+// --- Uložení HeroCon dat ---
+function saveHeroConData() {
+  alert("HeroCon data uložena.");
+  updateHeroConChart();
+  logHeroConChanges();
+}
+
+// --- Aktualizace Workshop Status ---
+function updateWorkshopStatus() {
+  // Workshop limit dle level dílny
+  // Pokud limit < 30 OK, pokud 30-35 +1, přes 35 -1
+  document.querySelectorAll('#playersTable tbody tr').forEach(tr => {
+    const limitTd = tr.cells[4];
+    const statusTd = tr.querySelector('.workshop-status');
+    const level = parseInt(limitTd.textContent) || 0;
+    let statusText = "OK";
+    let statusClass = "";
+    if(level > 35) { statusText = "-1"; statusClass = "negative"; }
+    else if(level >= 30) { statusText = "+1"; statusClass = "positive"; }
+    else { statusText = "OK"; statusClass = ""; }
+    statusTd.textContent = statusText;
+    statusTd.className = "workshop-status " + statusClass;
+  });
+}
+
+// --- Graf XP Tournament ---
+let xpChart;
+function updateXPChart() {
+  const ctx = document.getElementById('xpChart').getContext('2d');
+  const names = [];
+  const xpData = [];
+  document.querySelectorAll('#xpTable tbody tr').forEach(tr => {
+    const name = tr.cells[0].textContent.trim();
+    const xp = parseInt(tr.cells[1].textContent) || 0;
+    names.push(name);
+    xpData.push(xp);
+  });
+  if(xpChart) xpChart.destroy();
+  xpChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: names,
+      datasets: [{
+        label: 'XP',
+        data: xpData,
+        backgroundColor: 'rgba(0,255,200,0.7)',
+        borderColor: 'rgba(0,255,200,1)',
+        borderWidth: 1
+      }]
+    },
+    options: {
+      scales: { y: { beginAtZero: true } },
+      plugins: {
+        legend: { display: false }
+      }
+    }
+  });
+}
+
+// --- Graf HeroCon Tournament ---
+let heroConChart;
+function updateHeroConChart() {
+  const ctx = document.getElementById('heroconChart').getContext('2d');
+  const names = [];
+  const points = [];
+  document.querySelectorAll('#heroconTable tbody tr').forEach(tr => {
+    const name = tr.cells[0].textContent.trim();
+    const pts = parseInt(tr.cells[1].textContent) || 0;
+    names.push(name);
+    points.push(pts);
+  });
+  if(heroConChart) heroConChart.destroy();
+  heroConChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: names,
+      datasets: [{
+        label: 'Body HeroCon',
+        data: points,
+        backgroundColor: 'rgba(0,255,200,0.5)',
+        borderColor: 'rgba(0,255,200,1)',
+        fill: true,
+        tension: 0.3,
+        borderWidth: 2,
+        pointRadius: 5
+      }]
+    },
+    options: {
+      scales: { y: { beginAtZero: true } },
+      plugins: {
+        legend: { display: true }
+      }
+    }
+  });
+}
+
+// --- Logování změn XP ---
+function logXPChanges() {
+  const now = new Date().toLocaleString();
+  const logElem = document.getElementById('xpHistory');
+  logElem.textContent = `[${now}] Data XP aktualizována\n` + logElem.textContent;
+}
+
+// --- Logování změn HeroCon ---
+function logHeroConChanges() {
+  const now = new Date().toLocaleString();
+  const logElem = document.getElementById('heroconHistory');
+  logElem.textContent = `[${now}] Data HeroCon aktualizována\n` + logElem.textContent;
+}
+
+// --- Inicializace ---
+function init() {
+  showSection('guild');
+  updateWorkshopStatus();
+  updateXPChart();
+  updateHeroConChart();
+}
+
+init();
+
+</script>
 </body>
 </html>
