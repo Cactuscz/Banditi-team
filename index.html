@@ -376,9 +376,14 @@
       tr.appendChild(tdIcon);
 
       // Nickname + info icon
-      const tdName = document.createElement('td');
-      tdName.contentEditable = editMode;
-      tdName.textContent = p.name + ' ';
+      let tdName = document.createElement('td');
+      tdName.textContent = p.name;
+      tdName.contentEditable = editMode;  // povol editaci jen v editMode
+      tdName.oninput = () => {
+        p.name = tdName.textContent;      // aktualizuj data v poli
+        savePlayersData();
+      };
+      tr.appendChild(tdName);
       const infoBtn = document.createElement('span');
       infoBtn.className = 'info-icon';
       infoBtn.textContent = 'ℹ️';
@@ -462,6 +467,12 @@
   function savePlayersData() {
     localStorage.setItem('playersData', JSON.stringify(playersData));
   }
+  function loadPlayersData() {
+    const data = localStorage.getItem('playersData');
+    if(data) playersData = JSON.parse(data);
+    else playersData = [];
+  }
+
 
   // Modal for player info editing
   let currentEditIndex = null;
