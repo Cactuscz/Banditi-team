@@ -196,6 +196,7 @@
     </thead>
     <tbody id="playersBody"></tbody>
   </table>
+  <button class="action-btn" onclick="addPlayer()">➕ Přidat hráče</button>
   <button class="action-btn" onclick="exportPDF('players')">Exportovat Players Info do PDF</button>
 </div>
 
@@ -264,6 +265,19 @@
   const { jsPDF } = window.jspdf;
 
   let editMode = false;
+
+  function addPlayer() {
+  playersData.push({
+    name: 'Nový hráč',
+    level: 1,
+    workshop: 7,
+    missed: 0,
+    info: '',
+    role: 'member'
+  });
+  savePlayersData();
+  renderPlayers();
+}
 
   // Data Players (load from localStorage or default)
   let playersData = JSON.parse(localStorage.getItem('playersData')) || [
