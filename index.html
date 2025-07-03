@@ -4,6 +4,8 @@
 <meta charset="UTF-8" />
 <title>Banditi - Team Stats</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
 <style>
   body {
     background-color: #1f1f2e;
@@ -87,6 +89,7 @@
     cursor: pointer;
     font-weight: bold;
     margin-top: 8px;
+    margin-bottom: 20px;
   }
   button.action-btn:hover {
     background-color: #00d1a8;
@@ -150,6 +153,18 @@
     resize: vertical;
     white-space: pre-wrap;
   }
+  /* Colors for workshop status */
+  .status-positive {
+    color: #0f0; /* zelená */
+    font-weight: bold;
+  }
+  .status-negative {
+    color: #f44; /* červená */
+    font-weight: bold;
+  }
+  .status-ok {
+    color: #00ffc8;
+  }
 </style>
 </head>
 <body>
@@ -182,6 +197,7 @@
     </thead>
     <tbody id="playersBody"></tbody>
   </table>
+  <button class="action-btn" onclick="exportPDF('players')">Exportovat Players Info do PDF</button>
 </div>
 
 <!-- XP Tournament Section -->
@@ -199,6 +215,7 @@
         <tbody id="xpBody"></tbody>
       </table>
       <button class="action-btn" onclick="addRow('xpBody')">➕ Přidat hráče</button>
+      <button class="action-btn" onclick="exportPDF('xp')">Exportovat XP Tournament do PDF</button>
     </div>
     <div class="chart-wrapper">
       <canvas id="xpChart"></canvas>
@@ -221,6 +238,7 @@
         <tbody id="heroconBody"></tbody>
       </table>
       <button class="action-btn" onclick="addRow('heroconBody')">➕ Přidat hráče</button>
+      <button class="action-btn" onclick="exportPDF('herocon')">Exportovat HeroCon Tournament do PDF</button>
     </div>
     <div class="chart-wrapper">
       <canvas id="heroconChart"></canvas>
@@ -244,6 +262,8 @@
 <div id="modalOverlay"></div>
 
 <script>
+  const { jsPDF } = window.jspdf;
+
   let editMode = false;
 
   // Data Players (load from localStorage or default)
@@ -373,9 +393,17 @@
       };
       tr.appendChild(tdWorkshop);
 
-      // Workshop Status
+      // Workshop Status with colors
       const tdStatus = document.createElement('td');
-      tdStatus.textContent = calculateWorkshopStatus(p.level, p.workshop);
+      let statusVal = calculateWorkshopStatus(p.level, p.workshop);
+      tdStatus.textContent = statusVal;
+      if(statusVal === 'OK') {
+        tdStatus.className = 'status-ok';
+      } else if(statusVal.startsWith('+')) {
+        tdStatus.className = 'status-positive';
+      } else if(statusVal.startsWith('-')) {
+        tdStatus.className = 'status-negative';
+      }
       tr.appendChild(tdStatus);
 
       // Missed fights
@@ -389,10 +417,8 @@
       };
       tr.appendChild(tdMissed);
 
-      // Info (hidden in table)
-      const tdInfo = document.createElement('td');
-      tdInfo.textContent = p.info;
-      tr.appendChild(tdInfo);
+      // Info (schováno v tabulce - neukazuje se)
+      // tr.appendChild(document.createElement('td')); // sloupec info jsme odstranili
 
       // Delete button
       const tdDel = document.createElement('td');
@@ -443,44 +469,18 @@
     overlay.style.display = 'none';
     currentEditIndex = null;
   }
-  
-  // Section nav
-  function showSection(id) {
-    document.querySelectorAll('.section').forEach(sec => {
-      sec.classList.remove('active');
-    });
-    document.getElementById(id).classList.add('active');
-    // redraw charts when switching to avoid canvas issues
-    if(id === 'xp') xpChart.update();
-    if(id === 'herocon') heroconChart.update();
+  function saveInfo() {
+    closeModal(true);
   }
 
-  // Toggle edit mode
-  function toggleEditMode() {
-    editMode = !editMode;
-    document.getElementById('editModeBtn').textContent = editMode ? 'Zakázat úpravy' : 'Povolit úpravy';
-    renderPlayers();
-    toggleTablesEdit(editMode);
-  }
+  // XP and HeroCon tournament render and edit
 
-  // Enable or disable contenteditable for tournament tables
-  function toggleTablesEdit(enabled) {
-    ['xpBody', 'heroconBody'].forEach(id => {
-      const tbody = document.getElementById(id);
-      for(let row of tbody.rows) {
-        for(let i=0; i < row.cells.length; i++) {
-          row.cells[i].contentEditable = enabled;
-        }
-      }
-    });
-  }
-
-  // Render tournament tables from data
   function renderTournamentTable(tbodyId, dataArray) {
     const tbody = document.getElementById(tbodyId);
     tbody.innerHTML = '';
-    dataArray.forEach(d => {
+    dataArray.forEach((d, i) => {
       const tr = document.createElement('tr');
+
       // Rank
       const tdRank = document.createElement('td');
       tdRank.textContent = d.rank;
@@ -492,6 +492,7 @@
         updateCharts();
       };
       tr.appendChild(tdRank);
+
       // Name
       const tdName = document.createElement('td');
       tdName.textContent = d.name;
@@ -502,6 +503,7 @@
         updateCharts();
       };
       tr.appendChild(tdName);
+
       // Gained
       const tdGained = document.createElement('td');
       tdGained.textContent = d.gained;
@@ -526,7 +528,7 @@
     }
   }
 
-  // Add new row to a tournament table body by id
+  // Add new row to tournament table
   function addRow(tbodyId) {
     let dataArray = tbodyId === 'xpBody' ? xpDataStorage : heroconDataStorage;
     let newRank = dataArray.length + 1;
@@ -609,27 +611,94 @@
     localStorage.setItem('guildInfoText', text);
     alert('Guild info uloženo.');
   }
-
   function loadGuildInfo() {
     document.getElementById('guildInfoText').value = guildInfoText;
   }
 
-  // Initial render and setup
+  // Edit mode toggle
+  function toggleEditMode() {
+    editMode = !editMode;
+    document.getElementById('editModeBtn').textContent = editMode ? 'Zakázat úpravy' : 'Povolit úpravy';
+    renderPlayers();
+    renderTournamentTable('xpBody', xpDataStorage);
+    renderTournamentTable('heroconBody', heroconDataStorage);
+  }
+
+  // Show section
+  function showSection(id) {
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+  }
+
+  // Export tables to PDF
+  function exportPDF(section) {
+    let doc = new jsPDF();
+    let title = '';
+    let headers = [];
+    let rows = [];
+    let date = new Date().toLocaleString();
+
+    if(section === 'players') {
+      title = 'Players Info - Banditi';
+      headers = ['Role', 'Ikona', 'Nickname', 'Level', 'Workshop Level', 'Workshop Status', 'Missed Fights', 'Info'];
+      rows = playersData.map(p => [
+        p.role.charAt(0).toUpperCase() + p.role.slice(1),
+        roleIcon(p.role),
+        p.name,
+        p.level,
+        p.workshop,
+        calculateWorkshopStatus(p.level, p.workshop),
+        p.missed,
+        p.info || ''
+      ]);
+    } else if(section === 'xp') {
+      title = 'XP Tournament - Banditi';
+      headers = ['Rank', 'Name', 'XP Gained'];
+      rows = xpDataStorage.map(d => [d.rank, d.name, d.gained]);
+    } else if(section === 'herocon') {
+      title = 'HeroCon Tournament - Banditi';
+      headers = ['Rank', 'Name', 'HeroCon Gained'];
+      rows = heroconDataStorage.map(d => [d.rank, d.name, d.gained]);
+    } else {
+      alert('Nepodporovaná sekce pro export PDF');
+      return;
+    }
+
+    doc.setTextColor('#00ffc8');
+    doc.setFontSize(16);
+    doc.text(title, 14, 20);
+    doc.setFontSize(10);
+    doc.setTextColor('#fff');
+    doc.text(`Exportováno: ${date}`, 14, 28);
+
+    doc.autoTable({
+      head: [headers],
+      body: rows,
+      startY: 35,
+      theme: 'grid',
+      headStyles: {fillColor: [0, 255, 200]},
+      styles: {textColor: [255, 255, 255], fillColor: [35, 35, 45]}
+    });
+
+    doc.save(`${title.replace(/\s/g, '_')}_${date.replace(/[: ,]/g,'-')}.pdf`);
+  }
+
+  // Initial rendering
   function init() {
     renderPlayers();
     renderTournamentTable('xpBody', xpDataStorage);
     renderTournamentTable('heroconBody', heroconDataStorage);
-    toggleTablesEdit(editMode);
+    toggleEditMode(); // start with edit disabled
+    toggleEditMode(); // re-render in default mode (off)
     updateCharts();
     loadGuildInfo();
   }
 
-  // Close modal overlay click closes modal
+  // Modal overlay click closes modal
   document.getElementById('modalOverlay').addEventListener('click', () => closeModal(false));
 
   init();
 
 </script>
-
 </body>
 </html>
