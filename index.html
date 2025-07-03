@@ -264,9 +264,13 @@
 <script>
   const { jsPDF } = window.jspdf;
 
-  let editMode = true;
+  let editMode = false;
 
   function addPlayer() {
+  if (!editMode) {
+    alert("Nejdříve povol úpravy!");
+    return;
+  }
   playersData.push({
     name: 'Nový hráč',
     level: 1,
