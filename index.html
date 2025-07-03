@@ -377,18 +377,22 @@
 
       // Nickname + info icon
       let tdName = document.createElement('td');
-      tdName.textContent = p.name;
       tdName.contentEditable = editMode;  // povol editaci jen v editMode
+      tdName.textContent = p.name;
       tdName.oninput = () => {
         p.name = tdName.textContent;      // aktualizuj data v poli
         savePlayersData();
       };
-      tr.appendChild(tdName);
+
+      // vytvoříme ikonku info jako samostatný element uvnitř buňky tdName
       const infoBtn = document.createElement('span');
       infoBtn.className = 'info-icon';
       infoBtn.textContent = 'ℹ️';
       infoBtn.title = "Upravit info hráče";
+      infoBtn.style.cursor = 'pointer';
+      infoBtn.style.marginLeft = '6px';
       infoBtn.onclick = () => openInfoModal(idx);
+
       tdName.appendChild(infoBtn);
       tr.appendChild(tdName);
 
@@ -415,6 +419,7 @@
         renderPlayers();
       };
       tr.appendChild(tdWorkshop);
+
 
       // Workshop Status with colors
       const tdStatus = document.createElement('td');
