@@ -377,6 +377,7 @@
 
       // Nickname + info icon
       const tdName = document.createElement('td');
+      tdName.contentEditable = editMode;
       tdName.textContent = p.name + ' ';
       const infoBtn = document.createElement('span');
       infoBtn.className = 'info-icon';
