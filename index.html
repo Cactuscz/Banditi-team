@@ -339,135 +339,114 @@
     else return 'OK';
   }
 
-  function renderPlayers() {
+    function renderPlayers() {
     const tbody = document.getElementById('playersBody');
     tbody.innerHTML = '';
     playersData.forEach((p, idx) => {
       const tr = document.createElement('tr');
 
-      // Role cell
-      const tdRole = document.createElement('td');
-      if(editMode) {
-        const select = document.createElement('select');
-        select.className = 'role-select';
-        ['leader', 'officer', 'member'].forEach(r => {
-          const opt = document.createElement('option');
-          opt.value = r;
-          opt.text = r.charAt(0).toUpperCase() + r.slice(1);
-          if(r === p.role) opt.selected = true;
-          select.appendChild(opt);
-        });
-        select.onchange = e => {
-          p.role = e.target.value;
-          savePlayersData();
-          renderPlayers();
-        };
-        tdRole.appendChild(select);
-      } else {
-        tdRole.textContent = p.role.charAt(0).toUpperCase() + p.role.slice(1);
-      }
-      tr.appendChild(tdRole);
-
-      // Role icon
-      const tdIcon = document.createElement('td');
-      tdIcon.className = 'role-icon';
-      tdIcon.textContent = roleIcon(p.role);
-      tr.appendChild(tdIcon);
-
-      // Nickname + info icon
-      let tdName = document.createElement('td');
-      tdName.contentEditable = editMode;  // povol editaci jen v editMode
-      tdName.textContent = p.name;
-      tdName.oninput = () => {
-        p.name = tdName.textContent;      // aktualizuj data v poli
-        savePlayersData();
-      };
-
-      // vytvoříme ikonku info jako samostatný element uvnitř buňky tdName
-      const infoBtn = document.createElement('span');
-      infoBtn.className = 'info-icon';
-      infoBtn.textContent = 'ℹ️';
-      infoBtn.title = "Upravit info hráče";
-      infoBtn.style.cursor = 'pointer';
-      infoBtn.style.marginLeft = '6px';
-      infoBtn.onclick = () => openInfoModal(idx);
-
-      tdName.appendChild(infoBtn);
-      tr.appendChild(tdName);
-
-      // Level
-      const tdLevel = document.createElement('td');
-      tdLevel.contentEditable = editMode;
-      tdLevel.textContent = p.level;
-      tdLevel.oninput = () => {
-        const val = parseInt(tdLevel.textContent) || 0;
-        p.level = val;
-        savePlayersData();
-      // Přepočítej Workshop Status
-      tdWorkshopStatus.textContent = calculateWorkshopStatus(p.level, p.workshop);
-      };
-      tr.appendChild(tdLevel);
-
-      // Workshop Level
-      const tdWorkshop = document.createElement('td');
-      tdWorkshop.contentEditable = editMode;
-      tdWorkshop.textContent = p.workshop;
-      tdWorkshop.oninput = () => {
-        const val = parseInt(tdWorkshop.textContent) || 0;
-        p.workshop = val;
-        savePlayersData();
-      // Přepočítej Workshop Status
-      tdWorkshopStatus.textContent = calculateWorkshopStatus(p.level, p.workshop);
-      };
-      tr.appendChild(tdWorkshop);
-
-
-      // Workshop Status with colors
-      const tdStatus = document.createElement('td');
-      let statusVal = calculateWorkshopStatus(p.level, p.workshop);
-      tdStatus.textContent = statusVal;
-      if(statusVal === 'OK') {
-        tdStatus.className = 'status-ok';
-      } else if(statusVal.startsWith('+')) {
-        tdStatus.className = 'status-positive';
-      } else if(statusVal.startsWith('-')) {
-        tdStatus.className = 'status-negative';
-      }
-      tr.appendChild(tdStatus);
-
-      // Missed fights
-      const tdMissed = document.createElement('td');
-      tdMissed.contentEditable = editMode;
-      tdMissed.textContent = p.missed;
-      tdMissed.oninput = () => {
-        const val = parseInt(tdMissed.textContent) || 0;
-        p.missed = val;
-        savePlayersData();
-      };
-      tr.appendChild(tdMissed);
-
-      // Info (schováno v tabulce - neukazuje se)
-      // tr.appendChild(document.createElement('td')); // sloupec info jsme odstranili
-
-      // Delete button
-      const tdDel = document.createElement('td');
-      if(editMode) {
-        const btn = document.createElement('button');
-        btn.textContent = 'Smazat';
-        btn.onclick = () => {
-          if(confirm(`Opravdu smazat hráče ${p.name}?`)) {
-            playersData.splice(idx, 1);
-            savePlayersData();
-            renderPlayers();
-          }
-        };
-        tdDel.appendChild(btn);
-      }
-      tr.appendChild(tdDel);
-
-      tbody.appendChild(tr);
+    // Role
+    const tdRole = document.createElement('td');
+    const select = document.createElement('select');
+    select.className = 'role-select';
+    ['leader', 'officer', 'member'].forEach(role => {
+      const option = document.createElement('option');
+      option.value = role;
+      option.textContent = role.charAt(0).toUpperCase() + role.slice(1);
+      if (p.role === role) option.selected = true;
+      select.appendChild(option);
     });
-  }
+    select.disabled = !editMode;
+    select.onchange = () => {
+      p.role = select.value;
+      savePlayersData();
+      renderPlayers();
+    };
+    tdRole.appendChild(select);
+    tr.appendChild(tdRole);
+
+    // Nickname + info icon
+    const tdName = document.createElement('td');
+    tdName.contentEditable = editMode;
+    tdName.textContent = p.name;
+    tdName.oninput = () => {
+      p.name = tdName.textContent;
+      savePlayersData();
+    };
+
+    const infoBtn = document.createElement('span');
+    infoBtn.className = 'info-icon';
+    infoBtn.textContent = ' ℹ️';
+    infoBtn.title = "Upravit info hráče";
+    infoBtn.style.cursor = 'pointer';
+    infoBtn.onclick = () => openInfoModal(idx);
+    tdName.appendChild(infoBtn);
+    tr.appendChild(tdName);
+
+    // Level
+    const tdLevel = document.createElement('td');
+    tdLevel.contentEditable = editMode;
+    tdLevel.textContent = p.level;
+    tdLevel.oninput = () => {
+      p.level = parseInt(tdLevel.textContent) || 0;
+      savePlayersData();
+      tdWorkshopStatus.textContent = calculateWorkshopStatus(p.level, p.workshop);
+    };
+    tr.appendChild(tdLevel);
+
+    // Workshop
+    const tdWorkshop = document.createElement('td');
+    tdWorkshop.contentEditable = editMode;
+    tdWorkshop.textContent = p.workshop;
+    tdWorkshop.oninput = () => {
+      p.workshop = parseInt(tdWorkshop.textContent) || 0;
+      savePlayersData();
+      tdWorkshopStatus.textContent = calculateWorkshopStatus(p.level, p.workshop);
+    };
+    tr.appendChild(tdWorkshop);
+
+    // Workshop Status
+    const tdWorkshopStatus = document.createElement('td');
+    tdWorkshopStatus.className = 'workshop-status';
+    tdWorkshopStatus.textContent = calculateWorkshopStatus(p.level, p.workshop);
+    // Styl pro +/-
+    if (tdWorkshopStatus.textContent.includes('+')) {
+      tdWorkshopStatus.classList.add('positive');
+    } else if (tdWorkshopStatus.textContent.includes('-')) {
+      tdWorkshopStatus.classList.add('negative');
+    }
+    tr.appendChild(tdWorkshopStatus);
+
+    // Missed Fights
+    const tdMissed = document.createElement('td');
+    tdMissed.contentEditable = editMode;
+    tdMissed.textContent = p.missed;
+    tdMissed.oninput = () => {
+      p.missed = parseInt(tdMissed.textContent) || 0;
+      savePlayersData();
+    };
+    tr.appendChild(tdMissed);
+
+    // Delete button
+    const tdDelete = document.createElement('td');
+    const btnDelete = document.createElement('button');
+    btnDelete.className = 'delete-btn';
+    btnDelete.textContent = '🗑️';
+    btnDelete.disabled = !editMode;
+    btnDelete.onclick = () => {
+      if (confirm(`Opravdu chceš smazat hráče ${p.name}?`)) {
+        playersData.splice(idx, 1);
+        savePlayersData();
+        renderPlayers();
+      }
+    };
+    tdDelete.appendChild(btnDelete);
+    tr.appendChild(tdDelete);
+
+    tbody.appendChild(tr);
+  });
+}
+
 
   // Save playersData to localStorage
   function savePlayersData() {
