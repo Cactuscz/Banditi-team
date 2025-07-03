@@ -280,7 +280,6 @@
     role: 'member'
   });
   savePlayersData();
-  renderPlayers();
 }
 
   // Data Players (load from localStorage or default)
@@ -404,6 +403,8 @@
         const val = parseInt(tdLevel.textContent) || 0;
         p.level = val;
         savePlayersData();
+      // Přepočítej Workshop Status
+      tdWorkshopStatus.textContent = calculateWorkshopStatus(p.level, p.workshop);
       };
       tr.appendChild(tdLevel);
 
@@ -415,6 +416,8 @@
         const val = parseInt(tdWorkshop.textContent) || 0;
         p.workshop = val;
         savePlayersData();
+      // Přepočítej Workshop Status
+      tdWorkshopStatus.textContent = calculateWorkshopStatus(p.level, p.workshop);
       };
       tr.appendChild(tdWorkshop);
 
