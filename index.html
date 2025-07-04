@@ -340,10 +340,11 @@
   }
 
     function renderPlayers() {
-    const tbody = document.getElementById('playersBody');
-    tbody.innerHTML = '';
-    playersData.forEach((p, idx) => {
-      const tr = document.createElement('tr');
+      const tbody = document.getElementById('playersBody');
+      tbody.innerHTML = '';
+
+      playersData.forEach((p, idx) => {
+        const tr = document.createElement('tr');
 
     // Role
     const tdRole = document.createElement('td');
@@ -367,12 +368,14 @@
 
     // Nickname + info icon
     const tdName = document.createElement('td');
-    tdName.contentEditable = editMode;
-    tdName.textContent = p.name;
-    tdName.oninput = () => {
-      p.name = tdName.textContent;
+    const nameSpan = document.createElement('span');
+    nameSpan.textContent = p.name;
+    nameSpan.contentEditable = editMode;
+    nameSpan.oninput = () => {
+      p.name = nameSpan.textContent;
       savePlayersData();
     };
+    tdName.appendChild(nameSpan);
 
     const infoBtn = document.createElement('span');
     infoBtn.className = 'info-icon';
@@ -391,6 +394,7 @@
       p.level = parseInt(tdLevel.textContent) || 0;
       savePlayersData();
       tdWorkshopStatus.textContent = calculateWorkshopStatus(p.level, p.workshop);
+      updateWorkshopStatusStyle(tdWorkshopStatus);
     };
     tr.appendChild(tdLevel);
 
@@ -402,6 +406,7 @@
       p.workshop = parseInt(tdWorkshop.textContent) || 0;
       savePlayersData();
       tdWorkshopStatus.textContent = calculateWorkshopStatus(p.level, p.workshop);
+      updateWorkshopStatusStyle(tdWorkshopStatus);
     };
     tr.appendChild(tdWorkshop);
 
@@ -409,12 +414,7 @@
     const tdWorkshopStatus = document.createElement('td');
     tdWorkshopStatus.className = 'workshop-status';
     tdWorkshopStatus.textContent = calculateWorkshopStatus(p.level, p.workshop);
-    // Styl pro +/-
-    if (tdWorkshopStatus.textContent.includes('+')) {
-      tdWorkshopStatus.classList.add('positive');
-    } else if (tdWorkshopStatus.textContent.includes('-')) {
-      tdWorkshopStatus.classList.add('negative');
-    }
+    updateWorkshopStatusStyle(tdWorkshopStatus);
     tr.appendChild(tdWorkshopStatus);
 
     // Missed Fights
@@ -447,6 +447,14 @@
   });
 }
 
+function updateWorkshopStatusStyle(td) {
+  td.classList.remove('positive', 'negative');
+  if (td.textContent.includes('+')) {
+    td.classList.add('positive');
+  } else if (td.textContent.includes('-')) {
+    td.classList.add('negative');
+  }
+}
 
   // Save playersData to localStorage
   function savePlayersData() {
