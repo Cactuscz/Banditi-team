@@ -648,12 +648,21 @@ function updateWorkshopStatusStyle(td) {
 
   // Edit mode toggle
   function toggleEditMode() {
-    editMode = !editMode;
-    document.getElementById('editModeBtn').textContent = editMode ? 'Zakázat úpravy' : 'Povolit úpravy';
-    renderPlayers();
-    renderTournamentTable('xpBody', xpDataStorage);
-    renderTournamentTable('heroconBody', heroconDataStorage);
+  if (!editMode) {
+    const password = prompt("Zadej heslo pro úpravy:");
+    if (password !== "TopBanditi1") {
+      alert("Nesprávné heslo!");
+      return;
+    }
   }
+
+  editMode = !editMode;
+  document.getElementById('editModeBtn').textContent = editMode ? 'Zakázat úpravy' : 'Povolit úpravy';
+  renderPlayers();
+  renderTournamentTable('xpBody', xpDataStorage);
+  renderTournamentTable('heroconBody', heroconDataStorage);
+}
+
 
   // Show section
   function showSection(id) {
