@@ -339,12 +339,21 @@
     else return 'OK';
   }
 
-  function renderPlayers() {
-    const tbody = document.getElementById('playersBody');
-    tbody.innerHTML = '';
+ function renderPlayers() {
+  const tbody = document.getElementById('playersBody');
+  tbody.innerHTML = '';
 
-    playersData.forEach((p, idx) => {
-      const tr = document.createElement('tr');
+  // 1. Rozdělit podle role
+  const leaders = playersData.filter(p => p.role === 'leader');
+  const officers = playersData.filter(p => p.role === 'officer').sort((a, b) => b.level - a.level);
+  const members = playersData.filter(p => p.role === 'member').sort((a, b) => b.level - a.level);
+
+  // 2. Spojit do jednoho pole
+  const sortedPlayers = [...leaders, ...officers, ...members];
+
+  // 3. Vykreslit každého hráče
+  sortedPlayers.forEach((p, idx) => {
+    const tr = document.createElement('tr');
 
     // Role
     const tdRole = document.createElement('td');
@@ -361,7 +370,7 @@
     select.onchange = () => {
       p.role = select.value;
       savePlayersData();
-      renderPlayers();
+      renderPlayers(); // znovu seřadit po změně role
     };
     tdRole.appendChild(select);
     tr.appendChild(tdRole);
@@ -387,7 +396,7 @@
     infoBtn.textContent = ' ℹ️';
     infoBtn.title = "Upravit info hráče";
     infoBtn.style.cursor = 'pointer';
-    infoBtn.onclick = () => openInfoModal(idx);
+    infoBtn.onclick = () => openInfoModal(playersData.indexOf(p));
     tdName.appendChild(infoBtn);
     tr.appendChild(tdName);
 
@@ -400,6 +409,7 @@
       savePlayersData();
       tdWorkshopStatus.textContent = calculateWorkshopStatus(p.level, p.workshop);
       updateWorkshopStatusStyle(tdWorkshopStatus);
+      renderPlayers(); // přerenderovat tabulku po změně levelu
     };
     tr.appendChild(tdLevel);
 
@@ -439,9 +449,12 @@
     btnDelete.disabled = !editMode;
     btnDelete.onclick = () => {
       if (confirm(`Opravdu chceš smazat hráče ${p.name}?`)) {
-        playersData.splice(idx, 1);
-        savePlayersData();
-        renderPlayers();
+        const index = playersData.indexOf(p);
+        if (index > -1) {
+          playersData.splice(index, 1);
+          savePlayersData();
+          renderPlayers();
+        }
       }
     };
     tdDelete.appendChild(btnDelete);
@@ -450,7 +463,6 @@
     tbody.appendChild(tr);
   });
 }
-
 
 function updateWorkshopStatusStyle(td) {
   td.classList.remove('status-positive', 'status-negative', 'status-ok');
