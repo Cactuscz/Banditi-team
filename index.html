@@ -339,12 +339,12 @@
     else return 'OK';
   }
 
-    function renderPlayers() {
-      const tbody = document.getElementById('playersBody');
-      tbody.innerHTML = '';
+  function renderPlayers() {
+    const tbody = document.getElementById('playersBody');
+    tbody.innerHTML = '';
 
-      playersData.forEach((p, idx) => {
-        const tr = document.createElement('tr');
+    playersData.forEach((p, idx) => {
+      const tr = document.createElement('tr');
 
     // Role
     const tdRole = document.createElement('td');
@@ -366,7 +366,12 @@
     tdRole.appendChild(select);
     tr.appendChild(tdRole);
 
-    // Nickname + info icon
+    // Ikona
+    const tdIcon = document.createElement('td');
+    tdIcon.textContent = roleIcon(p.role);
+    tr.appendChild(tdIcon);
+
+    // Nickname + info
     const tdName = document.createElement('td');
     const nameSpan = document.createElement('span');
     nameSpan.textContent = p.name;
@@ -417,7 +422,7 @@
     updateWorkshopStatusStyle(tdWorkshopStatus);
     tr.appendChild(tdWorkshopStatus);
 
-    // Missed Fights
+    // Missed
     const tdMissed = document.createElement('td');
     tdMissed.contentEditable = editMode;
     tdMissed.textContent = p.missed;
@@ -427,10 +432,9 @@
     };
     tr.appendChild(tdMissed);
 
-    // Delete button
+    // Delete
     const tdDelete = document.createElement('td');
     const btnDelete = document.createElement('button');
-    btnDelete.className = 'delete-btn';
     btnDelete.textContent = '🗑️';
     btnDelete.disabled = !editMode;
     btnDelete.onclick = () => {
@@ -446,6 +450,7 @@
     tbody.appendChild(tr);
   });
 }
+
 
 function updateWorkshopStatusStyle(td) {
   td.classList.remove('positive', 'negative');
