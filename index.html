@@ -453,13 +453,17 @@
 
 
 function updateWorkshopStatusStyle(td) {
-  td.classList.remove('positive', 'negative');
-  if (td.textContent.includes('+')) {
-    td.classList.add('positive');
-  } else if (td.textContent.includes('-')) {
-    td.classList.add('negative');
+  td.classList.remove('status-positive', 'status-negative', 'status-ok');
+  const val = td.textContent.trim();
+  if (val.includes('+')) {
+    td.classList.add('status-positive');
+  } else if (val.includes('-')) {
+    td.classList.add('status-negative');
+  } else {
+    td.classList.add('status-ok');
   }
 }
+
 
   // Save playersData to localStorage
   function savePlayersData() {
