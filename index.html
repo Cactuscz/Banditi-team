@@ -726,14 +726,13 @@ function updateWorkshopStatusStyle(td) {
 
   // Initial rendering
   function init() {
-    renderPlayers();
-    renderTournamentTable('xpBody', xpDataStorage);
-    renderTournamentTable('heroconBody', heroconDataStorage);
-    toggleEditMode(); // start with edit disabled
-    toggleEditMode(); // re-render in default mode (off)
-    updateCharts();
-    loadGuildInfo();
-  }
+  renderPlayers();
+  renderTournamentTable('xpBody', xpDataStorage);
+  renderTournamentTable('heroconBody', heroconDataStorage);
+  updateCharts();
+  loadGuildInfo();
+}
+
 
   // Modal overlay click closes modal
   document.getElementById('modalOverlay').addEventListener('click', () => closeModal(false));
