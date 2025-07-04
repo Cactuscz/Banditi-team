@@ -651,7 +651,7 @@ function updateWorkshopStatusStyle(td) {
   if (!editMode) {
     const password = prompt("Zadej heslo pro úpravy:");
     if (password !== "TopBanditi1") {
-      alert("Nesprávné heslo!");
+      alert("Nesprávné heslo! Úpravy nejsou povoleny.");
       return;
     }
   }
@@ -662,6 +662,7 @@ function updateWorkshopStatusStyle(td) {
   renderTournamentTable('xpBody', xpDataStorage);
   renderTournamentTable('heroconBody', heroconDataStorage);
 }
+
 
 
   // Show section
