@@ -6,7 +6,8 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
-
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@4.0.2/dist/tesseract.min.js"></script>
+ 
 <!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
@@ -232,6 +233,12 @@
 
 </div>
 
+<div id="uploadSection" style="margin-bottom:20px; color:#00ffc8;">
+  <h3>Nahrát screenshot žebříčku</h3>
+  <input type="file" id="imageUpload" accept="image/*">
+  <canvas id="ocrCanvas" style="display:none"></canvas>
+</div>
+  
 <!-- XP Tournament Section -->
 <div id="xp" class="section">
   <div class="tables-charts-container">
@@ -820,7 +827,65 @@
 
     showSection('players');
   }
+  
+  document.getElementById('imageUpload').addEventListener('change', async function(e) {
+  const file = e.target.files[0];
+  if (!file) return;
 
+  const img = new Image();
+  const reader = new FileReader();
+
+  reader.onload = function(evt) {
+    img.src = evt.target.result;
+  };
+
+  img.onload = async function() {
+    const canvas = document.getElementById('ocrCanvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = img.width;
+    canvas.height = img.height;
+    ctx.drawImage(img, 0, 0);
+
+    const { data: { text } } = await Tesseract.recognize(canvas, 'eng');
+    const lines = text.split('\n').map(l => l.trim()).filter(l => l);
+
+    const xpEntries = [];
+    const heroconEntries = [];
+
+    lines.forEach((line, index) => {
+      const parts = line.split(/\s+/);
+      if (parts.length >= 2) {
+        const name = parts[0];
+        const gained = parseInt(parts[1]);
+        if (!isNaN(gained)) {
+          const entry = { rank: index + 1, name, gained };
+          if (confirm(`Přidat ${name} s ${gained} XP do XP žebříčku? (OK = ano, Zrušit = HeroCon)`)) {
+            xpEntries.push(entry);
+          } else {
+            heroconEntries.push(entry);
+          }
+        }
+      }
+    });
+
+    xpEntries.forEach(entry => xpDataStorage.push(entry));
+    heroconEntries.forEach(entry => heroconDataStorage.push(entry));
+
+    await saveXpData();
+    await saveHeroconData();
+
+    renderXpTable();
+    renderHeroconTable();
+    updateXpChart();
+    updateHeroconChart();
+
+    alert('Data byla načtena ze screenshotu.');
+  };
+
+  reader.readAsDataURL(file);
+});
+
+  
   window.onload = init;
 
 </script>
