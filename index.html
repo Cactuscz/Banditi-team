@@ -1,182 +1,78 @@
-<!DOCTYPE html>
-<html lang="cs">
 <head>
-<meta charset="UTF-8" />
-<title>Banditi - Team Stats</title>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+  <meta charset="UTF-8" />
+  <title>Banditi - Team Stats</title>
 
-<!-- Firebase SDK bez modulů -->
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
 
-<script>
-  const firebaseConfig = {
-    apiKey: "AIzaSyDlWV1eFKgh-B8_D_7bDQqf1PwgJEgMRaY",
-    authDomain: "banditi.firebaseapp.com",
-    projectId: "banditi",
-    storageBucket: "banditi.firebasestorage.app",
-    messagingSenderId: "319931947074",
-    appId: "1:319931947074:web:1c2687024644b731caf5db",
-    measurementId: "G-9NJQ6Q8XXY"
-  };
+  <!-- Firebase SDK klasické -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"></script>
 
-  // Inicializace Firebase
-  const app = firebase.initializeApp(firebaseConfig);
-  const db = firebase.firestore();
+  <script>
+    // Inicializace Firebase - musí být hned po SDK
+    const firebaseConfig = {
+      apiKey: "AIzaSyDlWV1eFKgh-B8_D_7bDQqf1PwgJEgMRaY",
+      authDomain: "banditi.firebaseapp.com",
+      projectId: "banditi",
+      storageBucket: "banditi.firebasestorage.app",
+      messagingSenderId: "319931947074",
+      appId: "1:319931947074:web:1c2687024644b731caf5db",
+      measurementId: "G-9NJQ6Q8XXY"
+    };
 
-  async function firebaseLoadData() {
-    const docRef = db.collection("banditi").doc("data");
-    const snap = await docRef.get();
-    if (snap.exists) {
-      const data = snap.data();
-      window.playersData = data.playersData || [];
-      window.xpDataStorage = data.xpData || [];
-      window.heroconDataStorage = data.heroconData || [];
-      window.guildInfoText = data.guildInfoText || "";
-    } else {
-      window.playersData = [];
-      window.xpDataStorage = [];
-      window.heroconDataStorage = [];
-      window.guildInfoText = "";
-    }
-  }
-
-  async function firebaseSaveAll() {
-    const docRef = db.collection("banditi").doc("data");
-    await docRef.set({
-      playersData: window.playersData,
-      xpData: window.xpDataStorage,
-      heroconData: window.heroconDataStorage,
-      guildInfoText: document.getElementById('guildInfoText')?.value || ""
-    });
-  }
-</script>
+    const app = firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+  </script>
 </head>
 <body>
 
-<h1>Banditi - Team Stats</h1>
+  <!-- TVŮJ HTML KÓD ZDE -->
 
-<h2>Guild Info</h2>
-<textarea id="guildInfoText" rows="5" cols="50"></textarea>
-<button onclick="saveGuildInfo()">Uložit Guild Info</button>
-
-<h2>Players</h2>
-<table border="1" id="playersTable">
-  <thead>
-    <tr>
-      <th>Jméno</th>
-      <th>Level</th>
-      <th>Dílna</th>
-      <th>Role</th>
-      <th>Info</th>
-    </tr>
-  </thead>
-  <tbody id="playersBody"></tbody>
-</table>
-
-<h2>XP Tournament</h2>
-<table border="1" id="xpTable">
-  <thead>
-    <tr><th>Pořadí</th><th>Jméno</th><th>Získáno XP</th></tr>
-  </thead>
-  <tbody id="xpBody"></tbody>
-</table>
-
-<h2>HeroCon Tournament</h2>
-<table border="1" id="heroconTable">
-  <thead>
-    <tr><th>Pořadí</th><th>Jméno</th><th>Získáno XP</th></tr>
-  </thead>
-  <tbody id="heroconBody"></tbody>
-</table>
-
-<script>
-  const { jsPDF } = window.jspdf;
-
-  // Role ikony
-  function roleIcon(role) {
-    switch(role) {
-      case 'leader': return '👑';
-      case 'officer': return '🛡️';
-      default: return '👤';
+  <script>
+    // Teď až tady napiš všechny funkce, které používají firebase a db
+    async function firebaseLoadData() {
+      const docRef = db.collection("banditi").doc("data");
+      const snap = await docRef.get();
+      if (snap.exists) {
+        const data = snap.data();
+        window.playersData = data.playersData || [];
+        window.xpDataStorage = data.xpData || [];
+        window.heroconDataStorage = data.heroconData || [];
+        window.guildInfoText = data.guildInfoText || "";
+      } else {
+        window.playersData = [];
+        window.xpDataStorage = [];
+        window.heroconDataStorage = [];
+        window.guildInfoText = "";
+      }
     }
-  }
 
-  // Render hráčů do tabulky
-  function renderPlayers() {
-    const tbody = document.getElementById('playersBody');
-    tbody.innerHTML = '';
-    for (const p of window.playersData) {
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td>${p.name} ${roleIcon(p.role)}</td>
-        <td>${p.level}</td>
-        <td>${p.workshop}</td>
-        <td>${p.role}</td>
-        <td>${p.info}</td>
-      `;
-      tbody.appendChild(tr);
+    async function firebaseSaveAll() {
+      const docRef = db.collection("banditi").doc("data");
+      await docRef.set({
+        playersData: window.playersData,
+        xpData: window.xpDataStorage,
+        heroconData: window.heroconDataStorage,
+        guildInfoText: document.getElementById('guildInfoText')?.value || ""
+      });
     }
-  }
 
-  // Render turnajových dat
-  function renderTournamentTable(tbodyId, dataArray) {
-    const tbody = document.getElementById(tbodyId);
-    tbody.innerHTML = '';
-    for (const item of dataArray) {
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td>${item.rank}</td>
-        <td>${item.name}</td>
-        <td>${item.gained}</td>
-      `;
-      tbody.appendChild(tr);
+    // Ostatní funkce a inicializace webu
+
+    async function init() {
+      console.log("Inicializuji...");
+      await firebaseLoadData();
+      console.log("Data načtena:", window.playersData);
+      renderPlayers();
+      renderTournamentTable('xpBody', window.xpDataStorage);
+      renderTournamentTable('heroconBody', window.heroconDataStorage);
+      updateCharts();
+      loadGuildInfo();
     }
-  }
 
-  // Zatím prázdná funkce pro grafy
-  function updateCharts() {
-    // TODO: přidat vykreslení grafů
-  }
-
-  // Načíst guild info do textarea
-  function loadGuildInfo() {
-    document.getElementById('guildInfoText').value = window.guildInfoText || '';
-  }
-
-  function savePlayersData() {
-    firebaseSaveAll();
-  }
-
-  function saveTournamentData(tbodyId, dataArray) {
-    if (tbodyId === 'xpBody') {
-      window.xpDataStorage = dataArray;
-    } else if (tbodyId === 'heroconBody') {
-      window.heroconDataStorage = dataArray;
-    }
-    firebaseSaveAll();
-  }
-
-  function saveGuildInfo() {
-    firebaseSaveAll();
-    alert('Guild info uloženo.');
-  }
-
-  async function init() {
-    console.log("Inicializuji...");
-    await firebaseLoadData();
-    console.log("Data načtena:", window.playersData);
-    renderPlayers();
-    renderTournamentTable('xpBody', window.xpDataStorage);
-    renderTournamentTable('heroconBody', window.heroconDataStorage);
-    updateCharts();
-    loadGuildInfo();
-  }
-
-  window.onload = init;
-</script>
+    window.onload = init;
+  </script>
 
 </body>
-</html>
