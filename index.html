@@ -3,47 +3,218 @@
 <head>
 <meta charset="UTF-8" />
 <title>Banditi - Team Stats</title>
-
-<!-- Knihovny -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
 
-<!-- Firebase SDK (compat verze) -->
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<!-- Firebase SDK -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyAMuBW2ZZVja7lcf88cJuBmCXJzjp35Ur0",
+    authDomain: "banditi-c15a8.firebaseapp.com",
+    projectId: "banditi-c15a8",
+    storageBucket: "banditi-c15a8.firebasestorage.app",
+    messagingSenderId: "185952741494",
+    appId: "1:185952741494:web:3069a101b847b661e91757",
+    measurementId: "G-NK07GNCLJ4"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  // Exportujeme do window, aby kód mimo module mohl přistupovat
+  window.db = db;
+  window.firebaseLoadData = async function() {
+    const docRef = doc(db, "banditi", "data");
+    const docSnap = await getDoc(docRef);
+    if(docSnap.exists()) {
+      const data = docSnap.data();
+      window.playersData = data.playersData || [];
+      window.xpDataStorage = data.xpData || [];
+      window.heroconDataStorage = data.heroconData || [];
+      window.guildInfoText = data.guildInfoText || '';
+    } else {
+      window.playersData = [];
+      window.xpDataStorage = [];
+      window.heroconDataStorage = [];
+      window.guildInfoText = '';
+    }
+  };
+
+  window.firebaseSaveAll = async function() {
+    const docRef = doc(db, "banditi", "data");
+    await setDoc(docRef, {
+      playersData: window.playersData,
+      xpData: window.xpDataStorage,
+      heroconData: window.heroconDataStorage,
+      guildInfoText: window.guildInfoText
+    });
+  };
+</script>
 
 <style>
-  body {
-    background-color: #1f1f2e;
-    color: #f0f0f0;
-    font-family: 'Segoe UI', sans-serif;
-    padding: 20px;
-  }
-  /* ... tady můžeš mít stejný CSS jako máš výše ... */
-  .nav {
-    margin-bottom: 15px;
-  }
-  .nav button {
-    background-color: #00ffc8;
-    color: #1f1f2e;
-    border: none;
-    padding: 8px 16px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: bold;
-    margin-right: 8px;
-  }
-  .nav button:hover {
-    background-color: #00d1a8;
-  }
-  .section {
-    display: none;
-  }
-  .section.active {
-    display: block;
-  }
-  /* Další stylování... */
+/* -- tady nechávám tvůj styl stejný -- */
+body {
+  background-color: #1f1f2e;
+  color: #f0f0f0;
+  font-family: 'Segoe UI', sans-serif;
+  padding: 20px;
+}
+.nav {
+  margin-bottom: 15px;
+}
+.nav button {
+  background-color: #00ffc8;
+  color: #1f1f2e;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  margin-right: 8px;
+}
+.nav button:hover {
+  background-color: #00d1a8;
+}
+.section {
+  display: none;
+}
+.section.active {
+  display: block;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: #2a2a3d;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 0 15px rgba(0,0,0,0.5);
+  margin-bottom: 10px;
+}
+th, td {
+  padding: 8px 12px;
+  text-align: center;
+  vertical-align: middle;
+  border-bottom: 1px solid #3c3c50;
+}
+th {
+  background-color: #34344a;
+  color: #00ffc8;
+  font-weight: bold;
+}
+tr:nth-child(even) {
+  background-color: #262636;
+}
+tr:hover {
+  background-color: #3a3a56;
+}
+.role-icon {
+  font-size: 1.3em;
+}
+.info-icon {
+  cursor: pointer;
+  color: #00ffc8;
+  font-weight: bold;
+  font-size: 1.2em;
+  user-select: none;
+}
+.role-select {
+  background-color: #262636;
+  border: none;
+  color: #00ffc8;
+  font-weight: bold;
+  cursor: pointer;
+  border-radius: 6px;
+  padding: 2px 5px;
+}
+button.action-btn {
+  background-color: #00ffc8;
+  color: #1f1f2e;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  margin-top: 8px;
+  margin-bottom: 20px;
+}
+button.action-btn:hover {
+  background-color: #00d1a8;
+}
+/* Modal */
+#infoModal {
+  display: none;
+  position: fixed;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  background: #2a2a3d;
+  border: 2px solid #00ffc8;
+  padding: 20px;
+  border-radius: 10px;
+  z-index: 1000;
+  width: 320px;
+}
+#modalOverlay {
+  display: none;
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0,0,0,0.5);
+  z-index: 999;
+}
+#infoText {
+  width: 100%;
+  height: 120px;
+  background: #1f1f2e;
+  color: #00ffc8;
+  border: none;
+  resize: none;
+  font-family: 'Segoe UI', sans-serif;
+  font-size: 14px;
+  padding: 6px;
+  border-radius: 6px;
+}
+.tables-charts-container {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+.table-wrapper, .chart-wrapper {
+  flex: 1 1 400px;
+  min-width: 300px;
+}
+canvas {
+  width: 100% !important;
+  height: 400px !important;
+}
+#guildInfoText {
+  width: 100%;
+  height: 400px;
+  background: #1f1f2e;
+  border: 2px solid #00ffc8;
+  color: #00ffc8;
+  padding: 10px;
+  font-family: 'Segoe UI', sans-serif;
+  font-size: 16px;
+  border-radius: 10px;
+  resize: vertical;
+  white-space: pre-wrap;
+}
+/* Colors for workshop status */
+.status-positive {
+  color: #0f0;
+  font-weight: bold;
+}
+.status-negative {
+  color: #f44;
+  font-weight: bold;
+}
+.status-ok {
+  color: #00ffc8;
+}
 </style>
 </head>
 <body>
@@ -77,400 +248,497 @@
   </table>
   <button class="action-btn" onclick="addPlayer()">➕ Přidat hráče</button>
   <button class="action-btn" onclick="exportPDF('players')">Exportovat Players Info do PDF</button>
-
-  <!-- Limity dílen -->
   <h3>Limity dílen</h3>
-  <table>
-    <thead>
-      <tr>
-        <th>Level od</th>
-        <th>Maximální dílna</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr><td>100</td><td>7</td></tr>
-      <tr><td>150</td><td>8</td></tr>
-      <tr><td>170</td><td>9</td></tr>
-      <tr><td>190</td><td>10</td></tr>
-      <tr><td>210</td><td>11</td></tr>
-      <tr><td>230</td><td>12</td></tr>
-      <tr><td>250</td><td>13</td></tr>
-      <tr><td>275</td><td>14</td></tr>
-      <tr><td>300</td><td>15</td></tr>
-      <tr><td>325</td><td>16</td></tr>
-      <tr><td>350</td><td>17</td></tr>
-      <tr><td>400</td><td>18</td></tr>
-      <tr><td>450</td><td>19</td></tr>
-      <tr><td>500</td><td>20</td></tr>
-    </tbody>
-  </table>
+<table>
+  <thead>
+    <tr>
+      <th>Limit dílen</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td>100</td><td>7</td></tr>
+    <tr><td>150</td><td>8</td></tr>
+    <tr><td>170</td><td>9</td></tr>
+    <tr><td>190</td><td>10</td></tr>
+    <tr><td>210</td><td>11</td></tr>
+    <tr><td>230</td><td>12</td></tr>
+    <tr><td>250</td><td>13</td></tr>
+    <tr><td>275</td><td>14</td></tr>
+    <tr><td>300</td><td>15</td></tr>
+    <tr><td>325</td><td>16</td></tr>
+    <tr><td>350</td><td>17</td></tr>
+    <tr><td>400</td><td>18</td></tr>
+    <tr><td>450</td><td>19</td></tr>
+    <tr><td>500</td><td>20</td></tr>
+    <tr><td>550</td><td>21</td></tr>
+  </tbody>
+</table>
 </div>
 
 <!-- XP Tournament Section -->
 <div id="xp" class="section">
-  <p>Zde je sekce XP Tournament (zatím bez Firebase, můžeš přidat později)</p>
+  <div class="tables-charts-container">
+    <div class="table-wrapper">
+      <table id="xpTable">
+        <thead>
+          <tr>
+            <th>Jméno</th>
+            <th>XP</th>
+          </tr>
+        </thead>
+        <tbody id="xpBody"></tbody>
+      </table>
+      <button class="action-btn" onclick="addXP()">➕ Přidat XP</button>
+      <button class="action-btn" onclick="exportPDF('xp')">Exportovat XP Tournament do PDF</button>
+    </div>
+    <div class="chart-wrapper">
+      <canvas id="xpChart"></canvas>
+    </div>
+  </div>
 </div>
 
 <!-- HeroCon Tournament Section -->
 <div id="herocon" class="section">
-  <p>Zde je sekce HeroCon Tournament (zatím bez Firebase, můžeš přidat později)</p>
+  <div class="tables-charts-container">
+    <div class="table-wrapper">
+      <table id="heroconTable">
+        <thead>
+          <tr>
+            <th>Jméno</th>
+            <th>HeroCon Score</th>
+          </tr>
+        </thead>
+        <tbody id="heroconBody"></tbody>
+      </table>
+      <button class="action-btn" onclick="addHeroCon()">➕ Přidat HeroCon</button>
+      <button class="action-btn" onclick="exportPDF('herocon')">Exportovat HeroCon Tournament do PDF</button>
+    </div>
+    <div class="chart-wrapper">
+      <canvas id="heroconChart"></canvas>
+    </div>
+  </div>
 </div>
 
 <!-- Guild Info Section -->
 <div id="guildinfo" class="section">
-  <textarea id="guildInfoText" placeholder="Zde napiš informace o guildě..."></textarea><br/>
+  <textarea id="guildInfoText" placeholder="Zde napiš informace o guildě..."></textarea>
   <button class="action-btn" onclick="saveGuildInfo()">Uložit Guild Info</button>
 </div>
 
-<!-- Modal for player info -->
-<div id="infoModal" style="display:none; position:fixed; top:50%; left:50%; transform: translate(-50%, -50%); background:#2a2a3d; border: 2px solid #00ffc8; padding:20px; border-radius:10px; z-index:1000; width:320px;">
-  <h3>Info o hráči</h3>
-  <textarea id="infoText" style="width:100%; height:120px; background:#1f1f2e; color:#00ffc8; border:none; resize:none; font-family:'Segoe UI', sans-serif; font-size:14px; padding:6px; border-radius:6px;"></textarea><br/>
-  <button onclick="saveInfo()">Uložit</button>
-  <button onclick="closeModal()">Zrušit</button>
+<!-- Modal for workshop info -->
+<div id="modalOverlay"></div>
+<div id="infoModal">
+  <textarea id="infoText" readonly></textarea>
+  <button class="action-btn" onclick="closeModal()">Zavřít</button>
 </div>
-<div id="modalOverlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:999;"></div>
 
 <script>
-  const { jsPDF } = window.jspdf;
+let editMode = false;
 
-  // --- Firebase konfigurace a inicializace ---
-  const firebaseConfig = {
-    apiKey: "AIzaSyAMuBW2ZZVja7lcf88cJuBmCXJzjp35Ur0",
-    authDomain: "banditi-c15a8.firebaseapp.com",
-    projectId: "banditi-c15a8",
-    storageBucket: "banditi-c15a8.firebasestorage.app",
-    messagingSenderId: "185952741494",
-    appId: "1:185952741494:web:3069a101b847b661e91757",
-    measurementId: "G-NK07GNCLJ4"
-  };
+function showSection(id) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
 
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.firestore();
+document.getElementById('editModeBtn').addEventListener('click', toggleEditMode);
 
-  // --- Data ---
-  let playersData = [];
+function toggleEditMode() {
+  editMode = !editMode;
+  document.getElementById('editModeBtn').textContent = editMode ? 'Zakázat úpravy' : 'Povolit úpravy';
+  renderPlayers();
+  renderXP();
+  renderHeroCon();
+}
 
-  // Načti hráče z Firestore
-  function loadPlayersData() {
-    return db.collection('players').get()
-      .then(snapshot => {
-        playersData = [];
-        snapshot.forEach(doc => {
-          playersData.push(doc.data());
-        });
+function openModal(text) {
+  document.getElementById('infoText').value = text;
+  document.getElementById('modalOverlay').style.display = 'block';
+  document.getElementById('infoModal').style.display = 'block';
+}
+
+function closeModal() {
+  document.getElementById('modalOverlay').style.display = 'none';
+  document.getElementById('infoModal').style.display = 'none';
+}
+
+// --- Data storage ---
+
+// Inicializované proměnné pro data
+window.playersData = [];
+window.xpDataStorage = [];
+window.heroconDataStorage = [];
+window.guildInfoText = "";
+
+// Funkce pro výpočet statusu dílny
+function workshopStatus(level, workshopLevel) {
+  const limits = [
+    { levelFrom: 100, maxWorkshop: 7 },
+    { levelFrom: 150, maxWorkshop: 8 },
+    { levelFrom: 170, maxWorkshop: 9 },
+    { levelFrom: 190, maxWorkshop: 10 },
+    { levelFrom: 210, maxWorkshop: 11 },
+    { levelFrom: 230, maxWorkshop: 12 },
+    { levelFrom: 250, maxWorkshop: 13 },
+    { levelFrom: 275, maxWorkshop: 14 },
+    { levelFrom: 300, maxWorkshop: 15 },
+    { levelFrom: 325, maxWorkshop: 16 },
+    { levelFrom: 350, maxWorkshop: 17 },
+    { levelFrom: 400, maxWorkshop: 18 },
+    { levelFrom: 450, maxWorkshop: 19 },
+    { levelFrom: 500, maxWorkshop: 20 },
+    { levelFrom: 550, maxWorkshop: 21 },
+  ];
+  let maxWorkshop = 0;
+  for (const limit of limits) {
+    if (level >= limit.levelFrom) maxWorkshop = limit.maxWorkshop;
+  }
+  if (workshopLevel > maxWorkshop) return {text: 'Překročeno', className: 'status-negative'};
+  if (workshopLevel === maxWorkshop) return {text: 'OK', className: 'status-ok'};
+  return {text: 'OK', className: 'status-positive'};
+}
+
+// --- Players ---
+
+function renderPlayers() {
+  const tbody = document.getElementById('playersBody');
+  tbody.innerHTML = '';
+  for (const player of window.playersData) {
+    const tr = document.createElement('tr');
+
+    // Role icon
+    const roleCell = document.createElement('td');
+    roleCell.textContent = player.role || '';
+    tr.appendChild(roleCell);
+
+    // Role icon (like commander/officer)
+    const iconCell = document.createElement('td');
+    let icon = '';
+    if(player.role === 'Velitel') icon = '👑';
+    else if(player.role === 'Důstojník') icon = '⚔️';
+    iconCell.textContent = icon;
+    iconCell.className = 'role-icon';
+    tr.appendChild(iconCell);
+
+    // Nickname
+    const nickCell = document.createElement('td');
+    if(editMode) {
+      const input = document.createElement('input');
+      input.value = player.name || '';
+      input.onchange = e => {
+        player.name = e.target.value;
+        saveData();
         renderPlayers();
-      })
-      .catch(err => console.error('Chyba při načítání z Firestore:', err));
-  }
-
-  // Ulož hráče do Firestore
-  function savePlayersData() {
-    const batch = db.batch();
-    const playersCollection = db.collection('players');
-    playersData.forEach(player => {
-      // Používáme nickname jako ID dokumentu (můžeš změnit, pokud chceš)
-      const docRef = playersCollection.doc(player.name);
-      batch.set(docRef, player);
-    });
-    return batch.commit()
-      .then(() => {
-        console.log('Data hráčů uložena do Firestore');
-        renderPlayers();
-      })
-      .catch(err => console.error('Chyba při ukládání do Firestore:', err));
-  }
-
-  // --- Zbytek tvého kódu pro renderování tabulky, modální okno atd. ---
-  // Funkce roleIcon atd. nechávám beze změny
-  function roleIcon(role) {
-    switch(role) {
-      case 'leader': return '👑';
-      case 'officer': return '🛡️';
-      default: return '👤';
-    }
-  }
-
-  function calculateWorkshopStatus(level, workshop) {
-    const limits = [
-      {lvl: 500, w: 20}, {lvl: 450, w: 19}, {lvl: 400, w: 18}, {lvl: 350, w: 17},
-      {lvl: 325, w: 16}, {lvl: 300, w: 15}, {lvl: 275, w: 14}, {lvl: 250, w: 13},
-      {lvl: 230, w: 12}, {lvl: 210, w: 11}, {lvl: 190, w: 10}, {lvl: 170, w: 9},
-      {lvl: 150, w: 8}, {lvl: 100, w: 7},
-    ];
-    let allowed = 7;
-    for(let l of limits) {
-      if(level >= l.lvl) {
-        allowed = l.w;
-        break;
-      }
-    }
-    let diff = workshop - allowed;
-    if(diff > 0) return '+' + diff;
-    else if(diff < 0) return diff.toString();
-    else return 'OK';
-  }
-
-  function updateWorkshopStatusStyle(td) {
-    td.classList.remove('status-positive', 'status-negative', 'status-ok');
-    const val = td.textContent.trim();
-    if (val.includes('+')) {
-      td.classList.add('status-positive');
-    } else if (val.includes('-')) {
-      td.classList.add('status-negative');
+      };
+      nickCell.appendChild(input);
     } else {
-      td.classList.add('status-ok');
+      nickCell.textContent = player.name;
     }
-  }
+    tr.appendChild(nickCell);
 
-  function renderPlayers() {
-    const tbody = document.getElementById('playersBody');
-    tbody.innerHTML = '';
-
-    // Seřadíme podle role a levelu
-    const leaders = playersData.filter(p => p.role === 'leader');
-    const officers = playersData.filter(p => p.role === 'officer').sort((a,b) => b.level - a.level);
-    const members = playersData.filter(p => p.role === 'member').sort((a,b) => b.level - a.level);
-
-    const sortedPlayers = [...leaders, ...officers, ...members];
-
-    sortedPlayers.forEach((p, idx) => {
-      const tr = document.createElement('tr');
-
-      // Role select
-      const tdRole = document.createElement('td');
-      const select = document.createElement('select');
-      select.className = 'role-select';
-      ['leader', 'officer', 'member'].forEach(role => {
-        const option = document.createElement('option');
-        option.value = role;
-        option.textContent = role.charAt(0).toUpperCase() + role.slice(1);
-        if (p.role === role) option.selected = true;
-        select.appendChild(option);
-      });
-      select.disabled = !editMode;
-      select.onchange = () => {
-        p.role = select.value;
-        savePlayersData();
+    // Level
+    const levelCell = document.createElement('td');
+    if(editMode) {
+      const input = document.createElement('input');
+      input.type = 'number';
+      input.min = 0;
+      input.value = player.level || 0;
+      input.onchange = e => {
+        player.level = parseInt(e.target.value) || 0;
+        saveData();
+        renderPlayers();
       };
-      tdRole.appendChild(select);
-      tr.appendChild(tdRole);
-
-      // Ikona role
-      const tdIcon = document.createElement('td');
-      tdIcon.textContent = roleIcon(p.role);
-      tr.appendChild(tdIcon);
-
-      // Nickname + info button
-      const tdName = document.createElement('td');
-      const nameSpan = document.createElement('span');
-      nameSpan.textContent = p.name;
-      nameSpan.contentEditable = editMode;
-      nameSpan.oninput = () => {
-        p.name = nameSpan.textContent;
-        savePlayersData();
-      };
-      tdName.appendChild(nameSpan);
-
-      const infoBtn = document.createElement('span');
-      infoBtn.className = 'info-icon';
-      infoBtn.textContent = ' ℹ️';
-      infoBtn.title = "Upravit info hráče";
-      infoBtn.style.cursor = 'pointer';
-      infoBtn.onclick = () => openInfoModal(playersData.indexOf(p));
-      tdName.appendChild(infoBtn);
-      tr.appendChild(tdName);
-
-      // Level
-      const tdLevel = document.createElement('td');
-      tdLevel.contentEditable = editMode;
-      tdLevel.textContent = p.level;
-      tdLevel.oninput = () => {
-        p.level = parseInt(tdLevel.textContent) || 0;
-        savePlayersData();
-      };
-      tr.appendChild(tdLevel);
-
-      // Workshop
-      const tdWorkshop = document.createElement('td');
-      tdWorkshop.contentEditable = editMode;
-      tdWorkshop.textContent = p.workshop;
-      tdWorkshop.oninput = () => {
-        p.workshop = parseInt(tdWorkshop.textContent) || 0;
-        tdWorkshop.textContent = p.workshop;
-        updateWorkshopStatus();
-        savePlayersData();
-      };
-      tr.appendChild(tdWorkshop);
-
-      // Workshop status
-      const tdWorkshopStatus = document.createElement('td');
-      tdWorkshopStatus.textContent = calculateWorkshopStatus(p.level, p.workshop);
-      updateWorkshopStatusStyle(tdWorkshopStatus);
-      tr.appendChild(tdWorkshopStatus);
-
-      // Missed fights
-      const tdMissed = document.createElement('td');
-      tdMissed.contentEditable = editMode;
-      tdMissed.textContent = p.missedFights || 0;
-      tdMissed.oninput = () => {
-        p.missedFights = parseInt(tdMissed.textContent) || 0;
-        savePlayersData();
-      };
-      tr.appendChild(tdMissed);
-
-      // Smazat
-      const tdDelete = document.createElement('td');
-      if(editMode) {
-        const delBtn = document.createElement('button');
-        delBtn.textContent = '🗑️';
-        delBtn.title = 'Smazat hráče';
-        delBtn.onclick = () => {
-          if(confirm(`Opravdu chceš smazat hráče ${p.name}?`)) {
-            playersData.splice(playersData.indexOf(p), 1);
-            savePlayersData();
-          }
-        };
-        tdDelete.appendChild(delBtn);
-      }
-      tr.appendChild(tdDelete);
-
-      tbody.appendChild(tr);
-    });
-
-    updateWorkshopStatus();
-  }
-
-  // Aktualizuje všechny statusy dílny
-  function updateWorkshopStatus() {
-    const tbody = document.getElementById('playersBody');
-    for(let tr of tbody.children) {
-      const wsStatusTd = tr.children[6];
-      const wsTd = tr.children[5];
-      if(wsStatusTd && wsTd) {
-        wsStatusTd.textContent = calculateWorkshopStatus(
-          parseInt(tr.children[3].textContent) || 0,
-          parseInt(tr.children[4].textContent) || 0
-        );
-        updateWorkshopStatusStyle(wsStatusTd);
-      }
+      levelCell.appendChild(input);
+    } else {
+      levelCell.textContent = player.level;
     }
-  }
+    tr.appendChild(levelCell);
 
-  // Přidat hráče
-  function addPlayer() {
-    if(!editMode) {
-      alert('Povol úpravy pro přidání hráče');
-      return;
+    // Workshop Level
+    const workshopCell = document.createElement('td');
+    if(editMode) {
+      const input = document.createElement('input');
+      input.type = 'number';
+      input.min = 0;
+      input.value = player.workshop || 0;
+      input.onchange = e => {
+        player.workshop = parseInt(e.target.value) || 0;
+        saveData();
+        renderPlayers();
+      };
+      workshopCell.appendChild(input);
+    } else {
+      workshopCell.textContent = player.workshop;
     }
-    const newPlayer = {
-      role: 'member',
-      name: 'Nový hráč',
-      level: 0,
-      workshop: 0,
-      missedFights: 0,
-      info: ''
-    };
-    playersData.push(newPlayer);
-    savePlayersData();
-  }
+    tr.appendChild(workshopCell);
 
-  // --- Edit info modal ---
-  let editingPlayerIndex = null;
+    // Workshop Status
+    const status = workshopStatus(player.level, player.workshop);
+    const statusCell = document.createElement('td');
+    statusCell.textContent = status.text;
+    statusCell.className = status.className;
+    tr.appendChild(statusCell);
 
-  function openInfoModal(index) {
-    editingPlayerIndex = index;
-    const player = playersData[index];
-    document.getElementById('infoText').value = player.info || '';
-    document.getElementById('infoModal').style.display = 'block';
-    document.getElementById('modalOverlay').style.display = 'block';
-  }
-  function closeModal() {
-    document.getElementById('infoModal').style.display = 'none';
-    document.getElementById('modalOverlay').style.display = 'none';
-  }
-  function saveInfo() {
-    if(editingPlayerIndex === null) return;
-    playersData[editingPlayerIndex].info = document.getElementById('infoText').value;
-    savePlayersData();
-    closeModal();
-  }
-
-  // --- Sekce ---
-  function showSection(id) {
-    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-    document.getElementById(id).classList.add('active');
-  }
-
-  // --- Edit mode ---
-  let editMode = false;
-  function toggleEditMode() {
-    editMode = !editMode;
-    document.getElementById('editModeBtn').textContent = editMode ? 'Zakázat úpravy' : 'Povolit úpravy';
-    renderPlayers();
-  }
-
-  // --- Export do PDF ---
-  function exportPDF(section) {
-    const doc = new jsPDF();
-
-    if(section === 'players') {
-      const columns = ["Role", "Ikona", "Nickname", "Level", "Workshop", "Workshop Status", "Missed Fights", "Info"];
-      const rows = playersData.map(p => [
-        p.role,
-        roleIcon(p.role),
-        p.name,
-        p.level,
-        p.workshop,
-        calculateWorkshopStatus(p.level, p.workshop),
-        p.missedFights,
-        p.info || ''
-      ]);
-
-      doc.autoTable({
-        head: [columns],
-        body: rows,
-        theme: 'grid',
-        styles: {
-          fontSize: 8,
-          textColor: '#1f1f2e',
-        },
-        headStyles: {
-          fillColor: '#00ffc8',
-          textColor: '#1f1f2e',
-          fontStyle: 'bold'
-        },
-      });
-
-      doc.save('Banditi_Players.pdf');
+    // Missed Fights
+    const missedCell = document.createElement('td');
+    if(editMode) {
+      const input = document.createElement('input');
+      input.type = 'number';
+      input.min = 0;
+      input.value = player.missedFights || 0;
+      input.onchange = e => {
+        player.missedFights = parseInt(e.target.value) || 0;
+        saveData();
+        renderPlayers();
+      };
+      missedCell.appendChild(input);
+    } else {
+      missedCell.textContent = player.missedFights || 0;
     }
-  }
+    tr.appendChild(missedCell);
 
-  // --- Guild Info ---
-  function saveGuildInfo() {
-    const text = document.getElementById('guildInfoText').value;
-    db.collection('guildInfo').doc('main').set({ info: text })
-      .then(() => alert('Guild Info uloženo'))
-      .catch(err => console.error('Chyba při ukládání Guild Info:', err));
-  }
-  function loadGuildInfo() {
-    db.collection('guildInfo').doc('main').get()
-      .then(doc => {
-        if(doc.exists) {
-          document.getElementById('guildInfoText').value = doc.data().info || '';
+    // Delete button
+    const delCell = document.createElement('td');
+    if(editMode) {
+      const btn = document.createElement('button');
+      btn.textContent = '❌';
+      btn.onclick = () => {
+        if(confirm(`Smazat hráče ${player.name}?`)) {
+          window.playersData = window.playersData.filter(p => p !== player);
+          saveData();
+          renderPlayers();
         }
-      })
-      .catch(err => console.error('Chyba při načítání Guild Info:', err));
+      };
+      delCell.appendChild(btn);
+    }
+    tr.appendChild(delCell);
+
+    tbody.appendChild(tr);
+  }
+}
+
+// --- XP Tournament ---
+
+function renderXP() {
+  const tbody = document.getElementById('xpBody');
+  tbody.innerHTML = '';
+  for (const entry of window.xpDataStorage) {
+    const tr = document.createElement('tr');
+    const nameCell = document.createElement('td');
+    if(editMode) {
+      const input = document.createElement('input');
+      input.value = entry.name || '';
+      input.onchange = e => {
+        entry.name = e.target.value;
+        saveData();
+        renderXP();
+      };
+      nameCell.appendChild(input);
+    } else {
+      nameCell.textContent = entry.name;
+    }
+    tr.appendChild(nameCell);
+
+    const xpCell = document.createElement('td');
+    if(editMode) {
+      const input = document.createElement('input');
+      input.type = 'number';
+      input.min = 0;
+      input.value = entry.xp || 0;
+      input.onchange = e => {
+        entry.xp = parseInt(e.target.value) || 0;
+        saveData();
+        renderXP();
+      };
+      xpCell.appendChild(input);
+    } else {
+      xpCell.textContent = entry.xp;
+    }
+    tr.appendChild(xpCell);
+
+    tbody.appendChild(tr);
+  }
+  updateXPChart();
+}
+
+// --- HeroCon Tournament ---
+
+function renderHeroCon() {
+  const tbody = document.getElementById('heroconBody');
+  tbody.innerHTML = '';
+  for (const entry of window.heroconDataStorage) {
+    const tr = document.createElement('tr');
+    const nameCell = document.createElement('td');
+    if(editMode) {
+      const input = document.createElement('input');
+      input.value = entry.name || '';
+      input.onchange = e => {
+        entry.name = e.target.value;
+        saveData();
+        renderHeroCon();
+      };
+      nameCell.appendChild(input);
+    } else {
+      nameCell.textContent = entry.name;
+    }
+    tr.appendChild(nameCell);
+
+    const scoreCell = document.createElement('td');
+    if(editMode) {
+      const input = document.createElement('input');
+      input.type = 'number';
+      input.min = 0;
+      input.value = entry.score || 0;
+      input.onchange = e => {
+        entry.score = parseInt(e.target.value) || 0;
+        saveData();
+        renderHeroCon();
+      };
+      scoreCell.appendChild(input);
+    } else {
+      scoreCell.textContent = entry.score;
+    }
+    tr.appendChild(scoreCell);
+
+    tbody.appendChild(tr);
+  }
+  updateHeroConChart();
+}
+
+// --- Guild Info ---
+
+function renderGuildInfo() {
+  document.getElementById('guildInfoText').value = window.guildInfoText || '';
+}
+
+function saveGuildInfo() {
+  window.guildInfoText = document.getElementById('guildInfoText').value;
+  saveData();
+  alert('Guild info uloženo!');
+}
+
+// --- Adding entries ---
+
+function addPlayer() {
+  window.playersData.push({
+    role: '',
+    name: '',
+    level: 0,
+    workshop: 0,
+    missedFights: 0,
+  });
+  saveData();
+  renderPlayers();
+}
+
+function addXP() {
+  window.xpDataStorage.push({name:'', xp: 0});
+  saveData();
+  renderXP();
+}
+
+function addHeroCon() {
+  window.heroconDataStorage.push({name:'', score:0});
+  saveData();
+  renderHeroCon();
+}
+
+// --- Save data to Firebase ---
+
+async function saveData() {
+  await window.firebaseSaveAll();
+}
+
+// --- PDF export ---
+
+async function exportPDF(section) {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+
+  if(section === 'players') {
+    doc.text("Players Info", 10, 10);
+    doc.autoTable({
+      startY: 15,
+      head: [['Role', 'Nickname', 'Level', 'Workshop', 'Missed Fights']],
+      body: window.playersData.map(p => [p.role, p.name, p.level, p.workshop, p.missedFights])
+    });
+  } else if(section === 'xp') {
+    doc.text("XP Tournament", 10, 10);
+    doc.autoTable({
+      startY: 15,
+      head: [['Jméno', 'XP']],
+      body: window.xpDataStorage.map(x => [x.name, x.xp])
+    });
+  } else if(section === 'herocon') {
+    doc.text("HeroCon Tournament", 10, 10);
+    doc.autoTable({
+      startY: 15,
+      head: [['Jméno', 'HeroCon Score']],
+      body: window.heroconDataStorage.map(h => [h.name, h.score])
+    });
   }
 
-  // --- Inicializace ---
-  function init() {
-    loadPlayersData();
-    loadGuildInfo();
-  }
+  doc.save(`${section}.pdf`);
+}
 
-  window.onload = init;
+// --- Charts ---
 
+let xpChart, heroconChart;
+
+function updateXPChart() {
+  const ctx = document.getElementById('xpChart').getContext('2d');
+  if(xpChart) xpChart.destroy();
+
+  xpChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: window.xpDataStorage.map(e => e.name),
+      datasets: [{
+        label: 'XP',
+        data: window.xpDataStorage.map(e => e.xp),
+        backgroundColor: '#00ffc8'
+      }]
+    },
+    options: {
+      scales: {
+        y: { beginAtZero: true }
+      }
+    }
+  });
+}
+
+function updateHeroConChart() {
+  const ctx = document.getElementById('heroconChart').getContext('2d');
+  if(heroconChart) heroconChart.destroy();
+
+  heroconChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: window.heroconDataStorage.map(e => e.name),
+      datasets: [{
+        label: 'HeroCon Score',
+        data: window.heroconDataStorage.map(e => e.score),
+        backgroundColor: '#00ffc8'
+      }]
+    },
+    options: {
+      scales: {
+        y: { beginAtZero: true }
+      }
+    }
+  });
+}
+
+// --- Inicializace dat a vykreslení ---
+
+async function init() {
+  await window.firebaseLoadData();
+  renderPlayers();
+  renderXP();
+  renderHeroCon();
+  renderGuildInfo();
+}
+
+window.onload = init;
 </script>
 
 </body>
