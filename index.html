@@ -6,10 +6,12 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-  import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
+<!-- Firebase SDK bez modulů -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"></script>
+
+<script>
   const firebaseConfig = {
     apiKey: "AIzaSyDlWV1eFKgh-B8_D_7bDQqf1PwgJEgMRaY",
     authDomain: "banditi.firebaseapp.com",
@@ -20,12 +22,14 @@
     measurementId: "G-9NJQ6Q8XXY"
   };
 
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
+  // Inicializace Firebase
+  const app = firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
 
-  window.firebaseLoadData = async function () {
-    const snap = await getDoc(doc(db, "banditi", "data"));
-    if (snap.exists()) {
+  async function firebaseLoadData() {
+    const docRef = db.collection("banditi").doc("data");
+    const snap = await docRef.get();
+    if (snap.exists) {
       const data = snap.data();
       window.playersData = data.playersData || [];
       window.xpDataStorage = data.xpData || [];
@@ -39,8 +43,9 @@
     }
   }
 
-  window.firebaseSaveAll = async function () {
-    await setDoc(doc(db, "banditi", "data"), {
+  async function firebaseSaveAll() {
+    const docRef = db.collection("banditi").doc("data");
+    await docRef.set({
       playersData: window.playersData,
       xpData: window.xpDataStorage,
       heroconData: window.heroconDataStorage,
@@ -89,7 +94,6 @@
 
 <script>
   const { jsPDF } = window.jspdf;
-  let editMode = false;
 
   // Role ikony
   function roleIcon(role) {
@@ -132,7 +136,7 @@
     }
   }
 
-  // Zatím prázdná funkce pro grafy (pokud chceš)
+  // Zatím prázdná funkce pro grafy
   function updateCharts() {
     // TODO: přidat vykreslení grafů
   }
@@ -161,7 +165,9 @@
   }
 
   async function init() {
+    console.log("Inicializuji...");
     await firebaseLoadData();
+    console.log("Data načtena:", window.playersData);
     renderPlayers();
     renderTournamentTable('xpBody', window.xpDataStorage);
     renderTournamentTable('heroconBody', window.heroconDataStorage);
@@ -170,7 +176,6 @@
   }
 
   window.onload = init;
-
 </script>
 
 </body>
