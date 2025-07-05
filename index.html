@@ -50,10 +50,97 @@
 </script>
 </head>
 <body>
-<!-- zbytek HTML zůstává stejný až po skript -->
+
+<h1>Banditi - Team Stats</h1>
+
+<h2>Guild Info</h2>
+<textarea id="guildInfoText" rows="5" cols="50"></textarea>
+<button onclick="saveGuildInfo()">Uložit Guild Info</button>
+
+<h2>Players</h2>
+<table border="1" id="playersTable">
+  <thead>
+    <tr>
+      <th>Jméno</th>
+      <th>Level</th>
+      <th>Dílna</th>
+      <th>Role</th>
+      <th>Info</th>
+    </tr>
+  </thead>
+  <tbody id="playersBody"></tbody>
+</table>
+
+<h2>XP Tournament</h2>
+<table border="1" id="xpTable">
+  <thead>
+    <tr><th>Pořadí</th><th>Jméno</th><th>Získáno XP</th></tr>
+  </thead>
+  <tbody id="xpBody"></tbody>
+</table>
+
+<h2>HeroCon Tournament</h2>
+<table border="1" id="heroconTable">
+  <thead>
+    <tr><th>Pořadí</th><th>Jméno</th><th>Získáno XP</th></tr>
+  </thead>
+  <tbody id="heroconBody"></tbody>
+</table>
+
 <script>
   const { jsPDF } = window.jspdf;
   let editMode = false;
+
+  // Role ikony
+  function roleIcon(role) {
+    switch(role) {
+      case 'leader': return '👑';
+      case 'officer': return '🛡️';
+      default: return '👤';
+    }
+  }
+
+  // Render hráčů do tabulky
+  function renderPlayers() {
+    const tbody = document.getElementById('playersBody');
+    tbody.innerHTML = '';
+    for (const p of window.playersData) {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${p.name} ${roleIcon(p.role)}</td>
+        <td>${p.level}</td>
+        <td>${p.workshop}</td>
+        <td>${p.role}</td>
+        <td>${p.info}</td>
+      `;
+      tbody.appendChild(tr);
+    }
+  }
+
+  // Render turnajových dat
+  function renderTournamentTable(tbodyId, dataArray) {
+    const tbody = document.getElementById(tbodyId);
+    tbody.innerHTML = '';
+    for (const item of dataArray) {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${item.rank}</td>
+        <td>${item.name}</td>
+        <td>${item.gained}</td>
+      `;
+      tbody.appendChild(tr);
+    }
+  }
+
+  // Zatím prázdná funkce pro grafy (pokud chceš)
+  function updateCharts() {
+    // TODO: přidat vykreslení grafů
+  }
+
+  // Načíst guild info do textarea
+  function loadGuildInfo() {
+    document.getElementById('guildInfoText').value = window.guildInfoText || '';
+  }
 
   function savePlayersData() {
     firebaseSaveAll();
@@ -76,13 +163,15 @@
   async function init() {
     await firebaseLoadData();
     renderPlayers();
-    renderTournamentTable('xpBody', xpDataStorage);
-    renderTournamentTable('heroconBody', heroconDataStorage);
+    renderTournamentTable('xpBody', window.xpDataStorage);
+    renderTournamentTable('heroconBody', window.heroconDataStorage);
     updateCharts();
     loadGuildInfo();
   }
 
   window.onload = init;
+
 </script>
+
 </body>
 </html>
