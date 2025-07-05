@@ -235,6 +235,11 @@
 
 <div id="uploadSection" style="margin-bottom:20px; color:#00ffc8;">
   <h3>Nahrát screenshot žebříčku</h3>
+ <label for="targetSection">Vybrat sekci:</label>
+<select id="targetSection" style="background:#1f1f2e; color:#00ffc8; border-radius:6px; padding:4px;">
+  <option value="xp">XP Tournament</option>
+  <option value="herocon">HeroCon Tournament</option>
+</select>
   <input type="file" id="imageUpload" accept="image/*">
   <canvas id="ocrCanvas" style="display:none"></canvas>
 </div>
@@ -848,6 +853,7 @@
 
     const { data: { text } } = await Tesseract.recognize(canvas, 'eng');
     const lines = text.split('\n').map(l => l.trim()).filter(l => l);
+    const selectedSection = document.getElementById('targetSection').value;
 
     const xpEntries = [];
     const heroconEntries = [];
@@ -859,7 +865,7 @@
         const gained = parseInt(parts[1]);
         if (!isNaN(gained)) {
           const entry = { rank: index + 1, name, gained };
-          if (confirm(`Přidat ${name} s ${gained} XP do XP žebříčku? (OK = ano, Zrušit = HeroCon)`)) {
+          if (selectedSection === 'xp') {
             xpEntries.push(entry);
           } else {
             heroconEntries.push(entry);
