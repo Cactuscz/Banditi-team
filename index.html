@@ -853,6 +853,7 @@
 
     const { data: { text } } = await Tesseract.recognize(canvas, 'eng');
     const lines = text.split('\n').map(l => l.trim()).filter(l => l);
+    console.log("OCR rozpoznaný text:", lines);
     const selectedSection = document.getElementById('targetSection').value;
 
     const xpEntries = [];
@@ -867,8 +868,10 @@
           const entry = { rank: index + 1, name, gained };
           if (selectedSection === 'xp') {
             xpEntries.push(entry);
+            console.log("XP entry přidán:", entry);
           } else {
             heroconEntries.push(entry);
+            console.log("HeroCon entry přidán:", entry);
           }
         }
       }
@@ -880,6 +883,11 @@
     await saveXpData();
     await saveHeroconData();
 
+
+    console.log("xpDataStorage:", xpDataStorage);
+    console.log("heroconDataStorage:", heroconDataStorage);
+
+   
     renderXpTable();
     renderHeroconTable();
     updateXpChart();
