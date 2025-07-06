@@ -872,25 +872,22 @@
     const xpEntries = [];
     const heroconEntries = [];
 
-    lines.forEach((line) => {
-      const cleanedLine = line.replace(/[€@©$]/g, '').replace(/\s+/g, ' ').trim();
-      const match = cleanedLine.match(/^(.+?)\s+(\d{2,6})$/);
+    lines.forEach((line, index) => {
+      const cleaned = line.replace(/[^\w\s]/gi, '').trim(); // odstraní divné znaky
+      const match = cleaned.match(/^(.+?)\s+(\d{2,6})$/); // jméno + číslo
 
-    if (match) {
-      const name = match[1].trim();
-      const gained = parseInt(match[2]);
-      const entry = { rank: heroconEntries.length + 1, name, gained };
+      if (match) {
+        const name = match[1].trim();
+        const gained = parseInt(match[2]);
+        const entry = { rank: index + 1, name, gained };
 
-    if (selectedSection === 'herocon') {
-      heroconEntries.push(entry);
-      console.log("HeroCon entry přidán:", entry);
-    } else if (selectedSection === 'xp') {
-      xpEntries.push(entry);
-      console.log("XP entry přidán:", entry);
-    }
-  }
-});
-
+        if (selectedSection === 'xp') {
+          xpEntries.push(entry);
+        } else {
+          heroconEntries.push(entry);
+        }
+      }
+    });
 
     xpEntries.forEach(entry => xpDataStorage.push(entry));
     heroconEntries.forEach(entry => heroconDataStorage.push(entry));
