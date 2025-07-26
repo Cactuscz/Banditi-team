@@ -1,677 +1,622 @@
 <!DOCTYPE html>
 <html lang="cs">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Banditi - Team Stats (Modernized)</title>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/tesseract.js@4.0.2/dist/tesseract.min.js"></script>
-
-<!-- Firebase SDK -->
-<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
-
-<style>
-  /* Modern CSS with responsive design */
-  * {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-  }
-  
-  body {
-    background: linear-gradient(135deg, #1f1f2e 0%, #2a2a3d 100%);
-    color: #f0f0f0;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    padding: 20px;
-    min-height: 100vh;
-  }
-  
-  .container {
-    max-width: 1200px;
-    margin: 0 auto;
-  }
-  
-  h1 {
-    text-align: center;
-    margin-bottom: 30px;
-    background: linear-gradient(45deg, #00ffc8, #00d1a8);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    font-size: 2.5rem;
-    font-weight: bold;
-  }
-  
-  .nav {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    margin-bottom: 20px;
-    padding: 20px;
-    background: rgba(42, 42, 61, 0.5);
-    border-radius: 15px;
-    backdrop-filter: blur(10px);
-  }
-  
-  .nav button {
-    background: linear-gradient(135deg, #00ffc8, #00d1a8);
-    color: #1f1f2e;
-    border: none;
-    padding: 12px 20px;
-    border-radius: 25px;
-    cursor: pointer;
-    font-weight: bold;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(0, 255, 200, 0.3);
-  }
-  
-  .nav button:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(0, 255, 200, 0.4);
-  }
-  
-  .nav button.active {
-    background: linear-gradient(135deg, #ff6b6b, #ff5252);
-    color: white;
-  }
-  
-  .section {
-    display: none;
-    background: rgba(42, 42, 61, 0.3);
-    border-radius: 20px;
-    padding: 30px;
-    margin-bottom: 20px;
-    backdrop-filter: blur(15px);
-    border: 1px solid rgba(0, 255, 200, 0.1);
-  }
-  
-  .section.active {
-    display: block;
-  }
-  
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    background-color: #2a2a3d;
-    border-radius: 15px;
-    overflow: hidden;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-    margin-bottom: 10px;
-  }
-  
-  th, td {
-    padding: 12px;
-    text-align: center;
-    vertical-align: middle;
-    border-bottom: 1px solid #3c3c50;
-  }
-  
-  th {
-    background-color: #34344a;
-    color: #00ffc8;
-    font-weight: bold;
-  }
-  
-  tr:nth-child(even) {
-    background-color: #262636;
-  }
-  
-  tr:hover {
-    background-color: #3a3a56;
-  }
-  
-  .action-btn {
-    background: linear-gradient(135deg, #00ffc8, #00d1a8);
-    color: #1f1f2e;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 20px;
-    cursor: pointer;
-    font-weight: bold;
-    margin: 5px;
-    transition: all 0.3s ease;
-  }
-  
-  .action-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 15px rgba(0, 255, 200, 0.4);
-  }
-  
-  input, select, textarea {
-    background: #2a2a3d;
-    color: #f0f0f0;
-    border: 1px solid #3c3c50;
-    border-radius: 8px;
-    padding: 8px 12px;
-    margin: 5px;
-  }
-  
-  input:focus, select:focus, textarea:focus {
-    outline: none;
-    border-color: #00ffc8;
-    box-shadow: 0 0 10px rgba(0, 255, 200, 0.3);
-  }
-  
-  .loading {
-    display: inline-block;
-    width: 20px;
-    height: 20px;
-    border: 3px solid rgba(0, 255, 200, 0.3);
-    border-radius: 50%;
-    border-top-color: #00ffc8;
-    animation: spin 1s ease-in-out infinite;
-  }
-  
-  @keyframes spin {
-    to { transform: rotate(360deg); }
-  }
-  
-  /* Mobile responsive */
-  @media (max-width: 768px) {
-    body { padding: 10px; }
-    .nav { flex-direction: column; }
-    .nav button { width: 100%; }
-    table { font-size: 0.9rem; }
-    h1 { font-size: 2rem; }
-    th, td { padding: 8px; }
-  }
-  
-  .role-icon {
-    font-size: 1.3em;
-  }
-  
-  .info-icon {
-    background: linear-gradient(45deg, #ff6b6b, #ff5252);
-    color: white;
-    border: none;
-    padding: 8px 12px;
-    border-radius: 15px;
-    cursor: pointer;
-    font-weight: bold;
-    margin: 5px;
-  }
-  
-  .workshop-status {
-    padding: 4px 12px;
-    border-radius: 12px;
-    font-weight: bold;
-    font-size: 0.9em;
-  }
-  
-  .workshop-yes {
-    background: linear-gradient(45deg, #4caf50, #45a049);
-    color: white;
-  }
-  
-  .workshop-no {
-    background: linear-gradient(45deg, #f44336, #d32f2f);
-    color: white;
-  }
-  
-  .tables-charts-container {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 20px;
-    margin-top: 20px;
-  }
-  
-  @media (max-width: 768px) {
-    .tables-charts-container {
-      grid-template-columns: 1fr;
-    }
-  }
-  
-  .chart-wrapper {
-    background: rgba(42, 42, 61, 0.3);
-    border-radius: 15px;
-    padding: 20px;
-    border: 1px solid rgba(0, 255, 200, 0.1);
-  }
-</style>
-</head>
-
-<body>
-<div class="container">
-  <h1>🎮 Banditi - Team Stats (Modernized)</h1>
-  
-  <div class="nav">
-    <button onclick="showSection('players')" class="active">👥 Hráči</button>
-    <button onclick="showSection('xp')">🏆 XP Tournament</button>
-    <button onclick="showSection('herocon')">⚔️ HeroCon Tournament</button>
-    <button onclick="showSection('guild')">🏰 Guild Info</button>
-    <button onclick="showSection('ocr')">📸 OCR Upload</button>
-  </div>
-
-  <!-- Players Section -->
-  <div id="players" class="section active">
-    <div class="tables-charts-container">
-      <div class="table-wrapper">
-        <table id="playersTable">
-          <thead>
-            <tr>
-              <th>Role</th>
-              <th>Name</th>
-              <th>Level</th>
-              <th>Workshop</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody id="playersBody"></tbody>
-        </table>
-        <button class="action-btn" onclick="addRow('playersBody')">➕ Přidat hráče</button>
-        <button class="action-btn" onclick="exportPDF('players')">📄 Exportovat do PDF</button>
-      </div>
-      <div class="chart-wrapper">
-        <canvas id="playersChart"></canvas>
-      </div>
-    </div>
-  </div>
-
-  <!-- OCR Section -->
-  <div id="ocr" class="section">
-    <h3>📸 Nahrát screenshot žebříčku</h3>
-    <label for="targetSection">Vybrat sekci:</label>
-    <select id="targetSection">
-      <option value="xp">XP Tournament</option>
-      <option value="herocon">HeroCon Tournament</option>
-    </select>
-    <input type="file" id="imageUpload" accept="image/*">
-    <canvas id="ocrCanvas" style="display:none"></canvas>
-    <div id="ocrProgress" style="display:none;">
-      <div class="loading"></div>
-      <span>Zpracovávám obrázek...</span>
-    </div>
-  </div>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Banditi - Guild Management Dashboard</title>
     
-  <!-- XP Tournament Section -->
-  <div id="xp" class="section">
-    <div class="tables-charts-container">
-      <div class="table-wrapper">
-        <table id="xpTable">
-          <thead>
-            <tr>
-              <th>Rank</th>
-              <th>Name</th>
-              <th>XP Gained</th>
-            </tr>
-          </thead>
-          <tbody id="xpBody"></tbody>
-        </table>
-        <button class="action-btn" onclick="addRow('xpBody')">➕ Přidat hráče</button>
-        <button class="action-btn" onclick="exportPDF('xp')">📄 Exportovat XP Tournament do PDF</button>
-      </div>
-      <div class="chart-wrapper">
-        <canvas id="xpChart"></canvas>
-      </div>
-    </div>
-  </div>
-
-  <!-- HeroCon Tournament Section -->
-  <div id="herocon" class="section">
-    <div class="tables-charts-container">
-      <div class="table-wrapper">
-        <table id="heroconTable">
-          <thead>
-            <tr>
-              <th>Rank</th>
-              <th>Name</th>
-              <th>Points</th>
-            </tr>
-          </thead>
-          <tbody id="heroconBody"></tbody>
-        </table>
-        <button class="action-btn" onclick="addRow('heroconBody')">➕ Přidat hráče</button>
-        <button class="action-btn" onclick="exportPDF('herocon')">📄 Exportovat HeroCon Tournament do PDF</button>
-      </div>
-      <div class="chart-wrapper">
-        <canvas id="heroconChart"></canvas>
-      </div>
-    </div>
-  </div>
-
-  <!-- Guild Info Section -->
-  <div id="guild" class="section">
-    <h3>🏰 Guild Information</h3>
-    <textarea id="guildInfo" placeholder="Zadejte informace o guildě..." style="width: 100%; height: 200px; resize: vertical;"></textarea>
-    <br>
-    <button class="action-btn" onclick="saveGuildInfo()">💾 Uložit Guild Info</button>
-    <button class="action-btn" onclick="loadGuildInfo()">📂 Načíst Guild Info</button>
-  </div>
-</div>
-
-<script>
-// Firebase Configuration
-const firebaseConfig = {
-  apiKey: "AIzaSyBnp8ZA123example",
-  authDomain: "banditi-stats.firebaseapp.com",
-  projectId: "banditi-stats",
-  storageBucket: "banditi-stats.appspot.com",
-  messagingSenderId: "123456789",
-  appId: "1:123456789:web:abcdef123456"
-};
-
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
-
-// Navigation
-function showSection(sectionId) {
-  document.querySelectorAll('.section').forEach(section => {
-    section.classList.remove('active');
-  });
-  document.querySelectorAll('.nav button').forEach(btn => {
-    btn.classList.remove('active');
-  });
-  
-  document.getElementById(sectionId).classList.add('active');
-  event.target.classList.add('active');
-}
-
-// Add row functionality
-function addRow(tableBodyId) {
-  const tbody = document.getElementById(tableBodyId);
-  const row = tbody.insertRow();
-  
-  if (tableBodyId === 'playersBody') {
-    row.innerHTML = `
-      <td>
-        <select onchange="updateWorkshopStatus(this)">
-          <option value="👑">👑 Leader</option>
-          <option value="⭐">⭐ Officer</option>
-          <option value="👤">👤 Member</option>
-        </select>
-      </td>
-      <td><input type="text" placeholder="Jméno hráče"></td>
-      <td><input type="number" placeholder="Level" onchange="updateWorkshopStatus(this)"></td>
-      <td class="workshop-cell"><span class="workshop-status workshop-no">❌ Ne</span></td>
-      <td><button class="info-icon" onclick="removeRow(this)">❌</button></td>
-    `;
-  } else if (tableBodyId === 'xpBody') {
-    row.innerHTML = `
-      <td><input type="number" placeholder="Rank"></td>
-      <td><input type="text" placeholder="Jméno"></td>
-      <td><input type="number" placeholder="XP Gained"></td>
-    `;
-  } else if (tableBodyId === 'heroconBody') {
-    row.innerHTML = `
-      <td><input type="number" placeholder="Rank"></td>
-      <td><input type="text" placeholder="Jméno"></td>
-      <td><input type="number" placeholder="Points"></td>
-    `;
-  }
-}
-
-// Remove row
-function removeRow(button) {
-  button.closest('tr').remove();
-}
-
-// Workshop status update
-function updateWorkshopStatus(element) {
-  const row = element.closest('tr');
-  const levelInput = row.querySelector('input[type="number"]');
-  const workshopCell = row.querySelector('.workshop-cell');
-  
-  if (levelInput && levelInput.value) {
-    const level = parseInt(levelInput.value);
-    const workshopStatus = level >= 50;
+    <!-- External Libraries -->
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
     
-    workshopCell.innerHTML = workshopStatus 
-      ? '<span class="workshop-status workshop-yes">✅ Ano</span>'
-      : '<span class="workshop-status workshop-no">❌ Ne</span>';
-  }
-}
-
-// OCR functionality
-document.getElementById('imageUpload').addEventListener('change', function(e) {
-  const file = e.target.files[0];
-  if (!file) return;
-  
-  const canvas = document.getElementById('ocrCanvas');
-  const ctx = canvas.getContext('2d');
-  const img = new Image();
-  
-  document.getElementById('ocrProgress').style.display = 'block';
-  
-  img.onload = function() {
-    canvas.width = img.width;
-    canvas.height = img.height;
-    ctx.drawImage(img, 0, 0);
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
     
-    Tesseract.recognize(canvas, 'eng')
-      .then(({ data: { text } }) => {
-        document.getElementById('ocrProgress').style.display = 'none';
-        processOCRText(text);
-      })
-      .catch(err => {
-        console.error('OCR Error:', err);
-        document.getElementById('ocrProgress').style.display = 'none';
-        alert('Chyba při zpracování obrázku');
-      });
-  };
-  
-  img.src = URL.createObjectURL(file);
-});
-
-function processOCRText(text) {
-  const targetSection = document.getElementById('targetSection').value;
-  const lines = text.split('\n').filter(line => line.trim());
-  
-  // Simple parsing logic - you can enhance this
-  lines.forEach((line, index) => {
-    if (line.includes('1.') || line.includes('2.') || line.includes('3.')) {
-      const parts = line.split(/\s+/);
-      if (parts.length >= 3) {
-        const rank = parts[0].replace('.', '');
-        const name = parts[1];
-        const value = parts[2];
+    <style>
+        :root {
+            --background: 222 17% 11%;
+            --foreground: 210 40% 98%;
+            --muted: 217 32% 17%;
+            --muted-foreground: 215 20% 65%;
+            --primary: 186 88% 44%;
+            --primary-foreground: 222 17% 11%;
+            --border: 217 32% 17%;
+            --card: 222 17% 11%;
+            --guild-400: 186 88% 44%;
+        }
         
-        if (targetSection === 'xp') {
-          addOCRRow('xpBody', rank, name, value);
-        } else {
-          addOCRRow('heroconBody', rank, name, value);
+        body {
+            background: hsl(var(--background));
+            color: hsl(var(--foreground));
+            font-family: 'Inter', system-ui, sans-serif;
         }
-      }
-    }
-  });
-}
+        
+        .glass-card {
+            background: hsl(var(--card) / 0.8);
+            backdrop-filter: blur(16px);
+            border: 1px solid hsl(var(--border) / 0.2);
+        }
+        
+        .status-positive { color: hsl(142, 76%, 56%); font-weight: 600; }
+        .status-negative { color: hsl(0, 84%, 60%); font-weight: 600; }
+        .status-neutral { color: hsl(var(--guild-400)); font-weight: 600; }
+        
+        .hover-lift {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .hover-lift:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px hsl(var(--background) / 0.3);
+        }
+        
+        .animate-fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+        
+        @keyframes fadeIn {
+            0% { opacity: 0; transform: translateY(10px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+        
+        .section { display: none; }
+        .section.active { display: block; }
+        
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: hsl(var(--muted)); }
+        ::-webkit-scrollbar-thumb { background: hsl(var(--muted-foreground) / 0.3); border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
 
-function addOCRRow(tableBodyId, rank, name, value) {
-  const tbody = document.getElementById(tableBodyId);
-  const row = tbody.insertRow();
-  
-  row.innerHTML = `
-    <td>${rank}</td>
-    <td>${name}</td>
-    <td>${value}</td>
-  `;
-}
+    <script type="text/babel">
+        const { useState, useEffect, useRef, useCallback } = React;
 
-// PDF Export
-function exportPDF(section) {
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF();
-  
-  doc.setFontSize(20);
-  doc.text(`Banditi - ${section.toUpperCase()} Report`, 20, 20);
-  
-  const table = document.querySelector(`#${section} table`) || document.querySelector(`#${section}Table`);
-  if (table) {
-    doc.autoTable({
-      html: table,
-      startY: 30,
-      styles: {
-        fillColor: [31, 31, 46],
-        textColor: [240, 240, 240],
-        lineColor: [0, 255, 200]
-      },
-      headStyles: {
-        fillColor: [0, 255, 200],
-        textColor: [31, 31, 46]
-      }
-    });
-  }
-  
-  doc.save(`banditi-${section}-report.pdf`);
-}
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyAMuBW2ZZVja7lcf88cJuBmCXJzjp35Ur0",
+            authDomain: "banditi-c15a8.firebaseapp.com",
+            projectId: "banditi-c15a8",
+            storageBucket: "banditi-c15a8.firebasestorage.app",
+            messagingSenderId: "185952741494",
+            appId: "1:185952741494:web:3069a101b847b661e91757",
+            measurementId: "G-NK07GNCLJ4"
+        };
 
-// Guild Info functions
-function saveGuildInfo() {
-  const guildInfo = document.getElementById('guildInfo').value;
-  
-  db.collection('guild').doc('info').set({
-    content: guildInfo,
-    lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
-  })
-  .then(() => {
-    alert('Guild info uloženo!');
-  })
-  .catch((error) => {
-    console.error('Error:', error);
-    alert('Chyba při ukládání');
-  });
-}
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
 
-function loadGuildInfo() {
-  db.collection('guild').doc('info').get()
-    .then((doc) => {
-      if (doc.exists) {
-        document.getElementById('guildInfo').value = doc.data().content || '';
-      } else {
-        alert('Žádné uložené informace nenalezeny');
-      }
-    })
-    .catch((error) => {
-      console.error('Error:', error);
-      alert('Chyba při načítání');
-    });
-}
+        // Workshop Calculator
+        const workshopLimits = [
+            { level: 500, maxWorkshop: 20 }, { level: 450, maxWorkshop: 19 },
+            { level: 400, maxWorkshop: 18 }, { level: 350, maxWorkshop: 17 },
+            { level: 325, maxWorkshop: 16 }, { level: 300, maxWorkshop: 15 },
+            { level: 275, maxWorkshop: 14 }, { level: 250, maxWorkshop: 13 },
+            { level: 230, maxWorkshop: 12 }, { level: 210, maxWorkshop: 11 },
+            { level: 190, maxWorkshop: 10 }, { level: 170, maxWorkshop: 9 },
+            { level: 150, maxWorkshop: 8 }, { level: 100, maxWorkshop: 7 }
+        ];
 
-// Initialize charts
-function initializeCharts() {
-  // Players Chart
-  const playersCtx = document.getElementById('playersChart');
-  if (playersCtx) {
-    new Chart(playersCtx, {
-      type: 'doughnut',
-      data: {
-        labels: ['Leader', 'Officer', 'Member'],
-        datasets: [{
-          data: [1, 3, 10],
-          backgroundColor: ['#ff6b6b', '#ffa726', '#66bb6a']
-        }]
-      },
-      options: {
-        responsive: true,
-        plugins: {
-          title: {
-            display: true,
-            text: 'Role Distribution',
-            color: '#f0f0f0'
-          },
-          legend: {
-            labels: {
-              color: '#f0f0f0'
+        function calculateWorkshopStatus(level, workshop) {
+            let allowedWorkshop = 7;
+            for (const limit of workshopLimits) {
+                if (level >= limit.level) {
+                    allowedWorkshop = limit.maxWorkshop;
+                    break;
+                }
             }
-          }
+            const difference = workshop - allowedWorkshop;
+            if (difference > 0) return `+${difference}`;
+            else if (difference < 0) return difference.toString();
+            else return 'Optimal';
         }
-      }
-    });
-  }
-  
-  // XP Chart
-  const xpCtx = document.getElementById('xpChart');
-  if (xpCtx) {
-    new Chart(xpCtx, {
-      type: 'bar',
-      data: {
-        labels: ['Player 1', 'Player 2', 'Player 3'],
-        datasets: [{
-          label: 'XP Gained',
-          data: [1200, 900, 750],
-          backgroundColor: 'rgba(0, 255, 200, 0.7)'
-        }]
-      },
-      options: {
-        responsive: true,
-        plugins: {
-          title: {
-            display: true,
-            text: 'XP Tournament Results',
-            color: '#f0f0f0'
-          },
-          legend: {
-            labels: {
-              color: '#f0f0f0'
-            }
-          }
-        },
-        scales: {
-          y: {
-            ticks: { color: '#f0f0f0' }
-          },
-          x: {
-            ticks: { color: '#f0f0f0' }
-          }
-        }
-      }
-    });
-  }
-  
-  // HeroCon Chart
-  const heroconCtx = document.getElementById('heroconChart');
-  if (heroconCtx) {
-    new Chart(heroconCtx, {
-      type: 'line',
-      data: {
-        labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
-        datasets: [{
-          label: 'Points Progress',
-          data: [100, 250, 400, 600],
-          borderColor: '#00ffc8',
-          backgroundColor: 'rgba(0, 255, 200, 0.1)',
-          fill: true
-        }]
-      },
-      options: {
-        responsive: true,
-        plugins: {
-          title: {
-            display: true,
-            text: 'HeroCon Tournament Progress',
-            color: '#f0f0f0'
-          },
-          legend: {
-            labels: {
-              color: '#f0f0f0'
-            }
-          }
-        },
-        scales: {
-          y: {
-            ticks: { color: '#f0f0f0' }
-          },
-          x: {
-            ticks: { color: '#f0f0f0' }
-          }
-        }
-      }
-    });
-  }
-}
 
-// Initialize when page loads
-document.addEventListener('DOMContentLoaded', function() {
-  initializeCharts();
-  
-  // Add some sample data
-  addRow('playersBody');
-  addRow('xpBody');
-  addRow('heroconBody');
-});
-</script>
+        // Firebase Hook
+        function useFirebaseData() {
+            const [loading, setLoading] = useState(false);
 
-</body>
-</html>
+            const loadPlayersData = useCallback(async () => {
+                setLoading(true);
+                try {
+                    const docRef = db.collection('banditiData').doc('players');
+                    const docSnap = await docRef.get();
+                    if (docSnap.exists) {
+                        return docSnap.data().list || [];
+                    } else {
+                        const defaultPlayers = [
+                            { id: '1', name: 'Sazaro', level: 527, workshop: 20, missed: 0, info: 'Velitel týmu.', role: 'leader' },
+                            { id: '2', name: 'Alfa', level: 521, workshop: 20, missed: 0, info: 'Důstojník.', role: 'officer' },
+                            { id: '3', name: 'Liones', level: 515, workshop: 19, missed: 0, info: 'Důstojník.', role: 'officer' },
+                            { id: '4', name: 'Bandita', level: 506, workshop: 20, missed: 0, info: 'Důstojník.', role: 'officer' },
+                            { id: '5', name: 'Blesk', level: 500, workshop: 20, missed: 0, info: 'Důstojník.', role: 'officer' },
+                            { id: '6', name: 'Ranny', level: 480, workshop: 19, missed: 0, info: 'Důstojník.', role: 'officer' },
+                            { id: '7', name: 'Loniz1337', level: 475, workshop: 19, missed: 0, info: 'Důstojník.', role: 'officer' }
+                        ];
+                        await savePlayersData(defaultPlayers);
+                        return defaultPlayers;
+                    }
+                } catch (error) {
+                    console.error('Error loading players data:', error);
+                    return [];
+                } finally {
+                    setLoading(false);
+                }
+            }, []);
+
+            const savePlayersData = useCallback(async (players) => {
+                try {
+                    await db.collection('banditiData').doc('players').set({ list: players });
+                } catch (error) {
+                    console.error('Error saving players data:', error);
+                    throw error;
+                }
+            }, []);
+
+            const loadTournamentData = useCallback(async (type) => {
+                setLoading(true);
+                try {
+                    const docRef = db.collection('banditiData').doc(type);
+                    const docSnap = await docRef.get();
+                    if (docSnap.exists) {
+                        return docSnap.data().list || [];
+                    } else {
+                        const defaultData = [
+                            { id: '1', rank: 1, name: 'Alfa', gained: type === 'xp' ? 1230 : 540 },
+                            { id: '2', rank: 2, name: 'Sazaro', gained: type === 'xp' ? 980 : 480 },
+                            { id: '3', rank: 3, name: 'Bandita', gained: type === 'xp' ? 840 : 300 }
+                        ];
+                        await saveTournamentData(type, defaultData);
+                        return defaultData;
+                    }
+                } catch (error) {
+                    console.error(`Error loading ${type} data:`, error);
+                    return [];
+                } finally {
+                    setLoading(false);
+                }
+            }, []);
+
+            const saveTournamentData = useCallback(async (type, data) => {
+                try {
+                    await db.collection('banditiData').doc(type).set({ list: data });
+                } catch (error) {
+                    console.error(`Error saving ${type} data:`, error);
+                    throw error;
+                }
+            }, []);
+
+            const loadGuildInfo = useCallback(async () => {
+                setLoading(true);
+                try {
+                    const docRef = db.collection('banditiData').doc('guildinfo');
+                    const docSnap = await docRef.get();
+                    return docSnap.exists ? docSnap.data().text || '' : '';
+                } catch (error) {
+                    console.error('Error loading guild info:', error);
+                    return '';
+                } finally {
+                    setLoading(false);
+                }
+            }, []);
+
+            const saveGuildInfo = useCallback(async (text) => {
+                try {
+                    await db.collection('banditiData').doc('guildinfo').set({ text });
+                } catch (error) {
+                    console.error('Error saving guild info:', error);
+                    throw error;
+                }
+            }, []);
+
+            return {
+                loading, loadPlayersData, savePlayersData,
+                loadTournamentData, saveTournamentData,
+                loadGuildInfo, saveGuildInfo
+            };
+        }
+
+        // Navigation Component
+        function Navigation({ currentSection, onSectionChange, editMode, onToggleEditMode }) {
+            const navItems = [
+                { id: 'guildinfo', label: 'Guild Info', icon: '🏰' },
+                { id: 'players', label: 'Members', icon: '👥' },
+                { id: 'xp', label: 'XP Tournament', icon: '📈' },
+                { id: 'herocon', label: 'HeroCon', icon: '⚔️' }
+            ];
+
+            return (
+                <header className="glass-card sticky top-0 z-50 border-b border-gray-700">
+                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                        <div className="flex items-center justify-between h-16">
+                            <div className="flex items-center space-x-4">
+                                <div className="w-10 h-10 bg-gradient-to-br from-cyan-400 to-cyan-600 rounded-lg flex items-center justify-center font-bold text-gray-900">
+                                    B
+                                </div>
+                                <div>
+                                    <h1 className="text-xl font-bold bg-gradient-to-r from-cyan-400 to-cyan-600 bg-clip-text text-transparent">
+                                        Banditi Guild
+                                    </h1>
+                                    <p className="text-sm text-gray-400">Management Dashboard</p>
+                                </div>
+                            </div>
+                            
+                            <nav className="hidden md:flex space-x-1">
+                                {navItems.map((item) => (
+                                    <button
+                                        key={item.id}
+                                        onClick={() => onSectionChange(item.id)}
+                                        className={`flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                                            currentSection === item.id 
+                                                ? 'bg-cyan-600 text-gray-900' 
+                                                : 'text-gray-300 hover:bg-gray-700'
+                                        }`}
+                                    >
+                                        <span>{item.icon}</span>
+                                        <span>{item.label}</span>
+                                    </button>
+                                ))}
+                            </nav>
+                            
+                            <div className="flex items-center space-x-3">
+                                <button
+                                    onClick={onToggleEditMode}
+                                    className={`flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                                        editMode 
+                                            ? 'bg-cyan-600 text-gray-900' 
+                                            : 'border border-gray-600 text-gray-300 hover:bg-gray-700'
+                                    }`}
+                                >
+                                    <span>✏️</span>
+                                    <span className="hidden sm:inline">
+                                        {editMode ? 'View Mode' : 'Edit Mode'}
+                                    </span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </header>
+            );
+        }
+
+        // Guild Info Component
+        function GuildInfo() {
+            const [guildInfoText, setGuildInfoText] = useState("");
+            const { saveGuildInfo, loadGuildInfo, loading } = useFirebaseData();
+
+            const guildStats = {
+                memberCount: 47,
+                activeCount: 42,
+                avgLevel: 387,
+                totalPower: 18239
+            };
+
+            useEffect(() => {
+                loadGuildInfo().then(setGuildInfoText);
+            }, [loadGuildInfo]);
+
+            const handleSave = async () => {
+                try {
+                    await saveGuildInfo(guildInfoText);
+                    alert('Guild info uloženo!');
+                } catch (error) {
+                    console.error('Error saving guild info:', error);
+                    alert('Chyba při ukládání!');
+                }
+            };
+
+            return (
+                <div className="animate-fade-in">
+                    <div className="mb-8">
+                        <h2 className="text-3xl font-bold text-cyan-400 mb-2">Guild Information</h2>
+                        <p className="text-gray-400">Manage your guild's information and announcements</p>
+                    </div>
+                    
+                    <div className="grid lg:grid-cols-3 gap-8">
+                        <div className="lg:col-span-1 space-y-6">
+                            <div className="glass-card hover-lift rounded-xl p-6">
+                                <div className="flex items-center justify-between mb-4">
+                                    <h3 className="text-lg font-semibold text-cyan-400">Guild Stats</h3>
+                                    <div className="w-8 h-8 bg-cyan-600 rounded-lg flex items-center justify-center">
+                                        🎯
+                                    </div>
+                                </div>
+                                <div className="space-y-3">
+                                    <div className="flex justify-between">
+                                        <span className="text-gray-400">Total Members</span>
+                                        <span className="font-semibold text-cyan-400">{guildStats.memberCount}</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <span className="text-gray-400">Active Players</span>
+                                        <span className="font-semibold text-green-400">{guildStats.activeCount}</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <span className="text-gray-400">Average Level</span>
+                                        <span className="font-semibold text-cyan-400">{guildStats.avgLevel}</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <span className="text-gray-400">Guild Power</span>
+                                        <span className="font-semibold text-cyan-400">{guildStats.totalPower.toLocaleString()}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div className="lg:col-span-2">
+                            <div className="glass-card rounded-xl p-6">
+                                <div className="flex items-center justify-between mb-4">
+                                    <h3 className="text-lg font-semibold text-cyan-400">
+                                        Guild Announcements & Info
+                                    </h3>
+                                    <button 
+                                        onClick={handleSave} 
+                                        disabled={loading}
+                                        className="flex items-center space-x-2 px-4 py-2 bg-cyan-600 text-gray-900 rounded-lg hover:bg-cyan-700 transition-colors disabled:opacity-50"
+                                    >
+                                        <span>💾</span>
+                                        <span>Save Changes</span>
+                                    </button>
+                                </div>
+                                <textarea
+                                    value={guildInfoText}
+                                    onChange={(e) => setGuildInfoText(e.target.value)}
+                                    placeholder="Write guild announcements, rules, and important information here..."
+                                    className="w-full h-96 bg-gray-800 border border-gray-600 rounded-lg p-4 text-gray-200 resize-y focus:outline-none focus:ring-2 focus:ring-cyan-400"
+                                />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        // Players Component
+        function Players() {
+            const [players, setPlayers] = useState([]);
+            const [filteredPlayers, setFilteredPlayers] = useState([]);
+            const [searchTerm, setSearchTerm] = useState("");
+            const [roleFilter, setRoleFilter] = useState("all");
+            const [selectedPlayer, setSelectedPlayer] = useState(null);
+            const [modalOpen, setModalOpen] = useState(false);
+            
+            const { loadPlayersData, savePlayersData, loading } = useFirebaseData();
+
+            useEffect(() => {
+                loadPlayersData().then(setPlayers);
+            }, [loadPlayersData]);
+
+            useEffect(() => {
+                let filtered = players;
+                if (searchTerm) {
+                    filtered = filtered.filter(player => 
+                        player.name.toLowerCase().includes(searchTerm.toLowerCase())
+                    );
+                }
+                if (roleFilter && roleFilter !== 'all') {
+                    filtered = filtered.filter(player => player.role === roleFilter);
+                }
+                setFilteredPlayers(filtered);
+            }, [players, searchTerm, roleFilter]);
+
+            const getRoleIcon = (role) => {
+                switch (role) {
+                    case 'leader': return '👑';
+                    case 'officer': return '🛡️';
+                    default: return '👤';
+                }
+            };
+
+            const getStatusClass = (status) => {
+                if (status.includes('+')) return 'status-positive';
+                if (status.includes('-')) return 'status-negative';
+                return 'status-neutral';
+            };
+
+            const handleFieldUpdate = async (playerId, field, value) => {
+                const updatedPlayers = players.map(player =>
+                    player.id === playerId ? { ...player, [field]: value } : player
+                );
+                setPlayers(updatedPlayers);
+                await savePlayersData(updatedPlayers);
+            };
+
+            const handleAddPlayer = async () => {
+                const newPlayer = {
+                    id: `player_${Date.now()}`,
+                    name: 'New Player',
+                    level: 0,
+                    workshop: 0,
+                    missed: 0,
+                    info: '',
+                    role: 'member'
+                };
+                const updatedPlayers = [...players, newPlayer];
+                setPlayers(updatedPlayers);
+                await savePlayersData(updatedPlayers);
+            };
+
+            const handleDeletePlayer = async (playerId) => {
+                if (confirm('Are you sure you want to remove this player?')) {
+                    const updatedPlayers = players.filter(player => player.id !== playerId);
+                    setPlayers(updatedPlayers);
+                    await savePlayersData(updatedPlayers);
+                }
+            };
+
+            const handlePlayerInfo = (player) => {
+                setSelectedPlayer(player);
+                setModalOpen(true);
+            };
+
+            const handleSavePlayerInfo = async (playerId, info) => {
+                const updatedPlayers = players.map(player =>
+                    player.id === playerId ? { ...player, info } : player
+                );
+                setPlayers(updatedPlayers);
+                await savePlayersData(updatedPlayers);
+                setModalOpen(false);
+            };
+
+            return (
+                <div className="animate-fade-in">
+                    <div className="mb-8">
+                        <h2 className="text-3xl font-bold text-cyan-400 mb-2">Guild Members</h2>
+                        <p className="text-gray-400">Manage member roles, levels, and workshop status</p>
+                    </div>
+                    
+                    {/* Search and Filters */}
+                    <div className="glass-card rounded-xl p-6 mb-6">
+                        <div className="grid md:grid-cols-3 gap-4">
+                            <div className="relative">
+                                <span className="absolute left-3 top-3 text-gray-400">🔍</span>
+                                <input
+                                    type="text"
+                                    placeholder="Search by name..."
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                    className="w-full pl-10 pr-4 py-2 bg-gray-800 border border-gray-600 rounded-lg text-gray-200 focus:outline-none focus:ring-2 focus:ring-cyan-400"
+                                />
+                            </div>
+                            <select
+                                value={roleFilter}
+                                onChange={(e) => setRoleFilter(e.target.value)}
+                                className="px-4 py-2 bg-gray-800 border border-gray-600 rounded-lg text-gray-200 focus:outline-none focus:ring-2 focus:ring-cyan-400"
+                            >
+                                <option value="all">All Roles</option>
+                                <option value="leader">Leader</option>
+                                <option value="officer">Officer</option>
+                                <option value="member">Member</option>
+                            </select>
+                            <button
+                                onClick={handleAddPlayer}
+                                className="flex items-center justify-center space-x-2 px-4 py-2 bg-cyan-600 text-gray-900 rounded-lg hover:bg-cyan-700 transition-colors"
+                            >
+                                <span>➕</span>
+                                <span>Add Member</span>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    {/* Members Table */}
+                    <div className="glass-card rounded-xl overflow-hidden">
+                        <div className="overflow-x-auto">
+                            <table className="w-full">
+                                <thead>
+                                    <tr className="bg-gray-800 border-b border-gray-700">
+                                        <th className="px-6 py-4 text-left text-cyan-400 font-semibold">Role</th>
+                                        <th className="px-6 py-4 text-left text-cyan-400 font-semibold">Member</th>
+                                        <th className="px-6 py-4 text-center text-cyan-400 font-semibold">Level</th>
+                                        <th className="px-6 py-4 text-center text-cyan-400 font-semibold">Workshop</th>
+                                        <th className="px-6 py-4 text-center text-cyan-400 font-semibold">Status</th>
+                                        <th className="px-6 py-4 text-center text-cyan-400 font-semibold">Missed</th>
+                                        <th className="px-6 py-4 text-center text-cyan-400 font-semibold">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {filteredPlayers.map((player) => {
+                                        const status = calculateWorkshopStatus(player.level, player.workshop);
+                                        return (
+                                            <tr key={player.id} className="border-b border-gray-700 hover:bg-gray-800">
+                                                <td className="px-6 py-4">
+                                                    <div className="flex items-center space-x-2">
+                                                        <span className="text-2xl">{getRoleIcon(player.role)}</span>
+                                                        <select
+                                                            value={player.role}
+                                                            onChange={(e) => handleFieldUpdate(player.id, 'role', e.target.value)}
+                                                            className="bg-gray-700 border border-gray-600 rounded px-2 py-1 text-sm text-cyan-400"
+                                                        >
+                                                            <option value="leader">Leader</option>
+                                                            <option value="officer">Officer</option>
+                                                            <option value="member">Member</option>
+                                                        </select>
+                                                    </div>
+                                                </td>
+                                                <td className="px-6 py-4">
+                                                    <div className="flex items-center space-x-3">
+                                                        <div className="w-8 h-8 bg-gradient-to-br from-cyan-400 to-cyan-600 rounded-full flex items-center justify-center text-gray-900 font-bold text-sm">
+                                                            {player.name.charAt(0).toUpperCase()}
+                                                        </div>
+                                                        <input
+                                                            value={player.name}
+                                                            onChange={(e) => handleFieldUpdate(player.id, 'name', e.target.value)}
+                                                            className="bg-transparent border-0 p-0 text-gray-200 font-semibold focus:outline-none"
+                                                        />
+                                                    </div>
+                                                </td>
+                                                <td className="px-6 py-4 text-center">
+                                                    <span className="inline-block px-3 py-1 bg-cyan-900 text-cyan-300 rounded-full text-sm font-semibold">
+                                                        <input
+                                                            type="number"
+                                                            value={player.level}
+                                                            onChange={(e) => handleFieldUpdate(player.id, 'level', parseInt(e.target.value) || 0)}
+                                                            className="w-12 bg-transparent text-center border-0 p-0 focus:outline-none"
+                                                        />
+                                                    </span>
+                                                </td>
+                                                <td className="px-6 py-4 text-center">
+                                                    <input
+                                                        type="number"
+                                                        value={player.workshop}
+                                                        onChange={(e) => handleFieldUpdate(player.id, 'workshop', parseInt(e.target.value) || 0)}
+                                                        className="w-16 px-2 py-1 bg-gray-700 border border-gray-600 rounded text-center text-gray-200 focus:outline-none focus:ring-2 focus:ring-cyan-400"
+                                                    />
+                                                </td>
+                                                <td className="px-6 py-4 text-center">
+                                                    <span className={`font-semibold ${getStatusClass(status)}`}>
+                                                        {status}
+                                                    </span>
+                                                </td>
+                                                <td className="px-6 py-4 text-center">
+                                                    <input
+                                                        type="number"
+                                                        value={player.missed}
+                                                        onChange={(e) => handleFieldUpdate(player.id, 'missed', parseInt(e.target.value) || 0)}
+                                                        className="w-16 px-2 py-1 bg-gray-700 border border-gray-600 rounded text-center text-gray-200 focus:outline-none focus:ring-2 focus:ring-cyan-400"
+                                                    />
+                                                </td>
+                                                <td className="px-6 py-4 text-center">
+                                                    <div className="flex items-center justify-center space-x-2">
+                                                        <button
+                                                            onClick={() => handlePlayerInfo(player)}
+                                                            className="p-2 text-cyan-400 hover:bg-gray-700 rounded transition-colors"
+                                                        >
+                                                            ℹ️
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleDeletePlayer(player.id)}
+                                                            className="p-2 text-red-400 hover:bg-gray-700 rounded transition-colors"
+                                                        >
+                                                            🗑️
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        );
+                                    })}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    {/* Workshop Guidelines */}
+                    <div className="glass-card rounded-xl p-6 mt-8">
+                        <h3 className="text-lg font-semibold text-cyan-400 mb-4">Workshop Level Guidelines</h3>
+                        <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                            {workshopLimits.map((limit) => (
+                                <div key={limit.level} className="bg-gray-800 rounded-lg p-3 text-center">
+                                    <div className="text-sm text-gray-400">Level {limit.level}+</div>
+                                    <div className="text-lg font-semibold text-cyan-400">
+                                        Workshop {limit.maxWorkshop}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Player Info Modal */}
+                    {modalOpen && selectedPlayer && (
+                        <div className="fixed inset-0 bg-black bg-opacity
